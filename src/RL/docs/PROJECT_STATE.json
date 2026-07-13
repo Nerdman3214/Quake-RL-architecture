@@ -1,0 +1,40 @@
+{
+  "updated_at": "2026-07-13T14:51:05-05:00",
+  "project_root": "/media/steven/WINPE2/Quake-RL-architecture",
+  "project_exists": true,
+  "xonotic_root": "/media/steven/WINPE2/Xonotic",
+  "xonotic_root_exists": true,
+  "xonotic_executables": {
+    "xonotic-linux64-glx": {
+      "exists": true,
+      "executable": true
+    },
+    "xonotic-linux64-sdl": {
+      "exists": true,
+      "executable": true
+    },
+    "xonotic-linux64-dedicated": {
+      "exists": true,
+      "executable": true
+    }
+  },
+  "git": {
+    "available": false,
+    "status": "",
+    "branch": "",
+    "head": "",
+    "diff_stat": ""
+  },
+  "recent_files": [
+    {
+      "path": "src/RL/docs/AI_HANDOFF.md",
+      "modified_at": "2026-07-13T14:50:50-05:00",
+      "size_bytes": 1437
+    },
+    {
+      "path": "src/RL/docs/PROJECT_STATE.json",
+      "modified_at": "2026-07-13T14:50:50-05:00",
+      "size_bytes": 907
+    }
+  ]
+}
