@@ -1,0 +1,11 @@
+checkpoints/*
+!checkpoints/.gitkeep
+logs/*
+!logs/.gitkeep
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+__pycache__/
+*.pyc
+.env
