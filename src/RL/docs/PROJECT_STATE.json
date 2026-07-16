@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-15T21:31:35-05:00",
+  "updated_at": "2026-07-16T13:12:26-05:00",
   "project_root": "/media/steven/WINPE2/Quake-RL-architecture",
   "project_exists": true,
   "xonotic_root": "/media/steven/WINPE2/Xonotic",
@@ -20,21 +20,31 @@
   },
   "git": {
     "available": true,
-    "status": "M src/RL/docs/AI_HANDOFF.md\n M src/RL/docs/PROJECT_STATE.json\n?? PROJECT_FILES.txt\n?? events.jsonl\n?? jsonl_writer.py\n?? src/RL/docs/EVENT_SCHEMA.md\n?? src/RL/engine/bridge/event_stream.py\n?? src/RL/events/\n?? src/RL/jsonl_reader.py\n?? src/RL/tests/unit/test_events.py\n?? src/RL/tests/unit/test_jsonl_pipeline.py\n?? src/RL/tools/inspection/smoke_test_events.py\n?? src/RL/tools/launch/live_event_recording_test.py",
+    "status": "D events.jsonl\n M src/RL/docs/AI_HANDOFF.md\n M src/RL/docs/PROJECT_STATE.json",
     "branch": "main",
-    "head": "1e11527",
-    "diff_stat": "src/RL/docs/AI_HANDOFF.md      |  69 +++++++---------\n src/RL/docs/PROJECT_STATE.json | 184 ++++++++++++++++++++---------------------\n 2 files changed, 120 insertions(+), 133 deletions(-)"
+    "head": "5274655",
+    "diff_stat": "events.jsonl                   | 15 ---------------\n src/RL/docs/AI_HANDOFF.md      | 26 ++++++++------------------\n src/RL/docs/PROJECT_STATE.json | 36 ++++++++++++++++++------------------\n 3 files changed, 26 insertions(+), 51 deletions(-)"
   },
   "recent_files": [
     {
       "path": "src/RL/docs/AI_HANDOFF.md",
-      "modified_at": "2026-07-15T21:31:20-05:00",
-      "size_bytes": 3011
+      "modified_at": "2026-07-16T13:12:11-05:00",
+      "size_bytes": 2695
     },
     {
       "path": "src/RL/docs/PROJECT_STATE.json",
-      "modified_at": "2026-07-15T21:31:20-05:00",
-      "size_bytes": 5792
+      "modified_at": "2026-07-16T13:12:11-05:00",
+      "size_bytes": 5516
+    },
+    {
+      "path": "src/RL/tools/inspection/__pycache__/smoke_test_events.cpython-312.pyc",
+      "modified_at": "2026-07-16T02:34:35-05:00",
+      "size_bytes": 3180
+    },
+    {
+      "path": "src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc",
+      "modified_at": "2026-07-15T21:38:52-05:00",
+      "size_bytes": 3880
     },
     {
       "path": "src/RL/tools/launch/live_event_recording_test.py",
@@ -45,11 +55,6 @@
       "path": "src/RL/engine/bridge/event_stream.py",
       "modified_at": "2026-07-15T21:13:39-05:00",
       "size_bytes": 3029
-    },
-    {
-      "path": "src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc",
-      "modified_at": "2026-07-15T21:11:19-05:00",
-      "size_bytes": 2845
     },
     {
       "path": "src/RL/tools/inspection/smoke_test_events.py",
@@ -170,11 +175,6 @@
       "path": "src/RL/training/__pycache__/__init__.cpython-312.pyc",
       "modified_at": "2026-07-15T00:27:53-05:00",
       "size_bytes": 124
-    },
-    {
-      "path": "src/RL/tools/launch/__pycache__/__init__.cpython-312.pyc",
-      "modified_at": "2026-07-15T00:27:53-05:00",
-      "size_bytes": 128
     }
   ]
 }

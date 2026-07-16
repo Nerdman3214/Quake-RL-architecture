@@ -1,12 +1,12 @@
-"""Core contracts for structured RL events."""
+"""Event contracts."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict
 
 
-@dataclass(frozen=True)
+@dataclass
 class Event:
-    """A serializable telemetry event."""
+    """An event in the system."""
 
     type: str
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: Dict[str, Any]

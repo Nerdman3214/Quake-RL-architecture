@@ -24,35 +24,26 @@ Establish one real Xonotic observation/event channel and one real action channel
 ## Automatic repository snapshot
 
 <!-- AUTO-SNAPSHOT-START -->
-- Updated: `2026-07-15T21:31:35-05:00`
+- Updated: `2026-07-16T13:12:26-05:00`
 - Project exists: `True`
 - Xonotic exists: `True`
 - Git branch: `main`
-- Git HEAD: `1e11527`
+- Git HEAD: `5274655`
 
 ### Git status
 ```text
-M src/RL/docs/AI_HANDOFF.md
+D events.jsonl
+ M src/RL/docs/AI_HANDOFF.md
  M src/RL/docs/PROJECT_STATE.json
-?? PROJECT_FILES.txt
-?? events.jsonl
-?? jsonl_writer.py
-?? src/RL/docs/EVENT_SCHEMA.md
-?? src/RL/engine/bridge/event_stream.py
-?? src/RL/events/
-?? src/RL/jsonl_reader.py
-?? src/RL/tests/unit/test_events.py
-?? src/RL/tests/unit/test_jsonl_pipeline.py
-?? src/RL/tools/inspection/smoke_test_events.py
-?? src/RL/tools/launch/live_event_recording_test.py
 ```
 
 ### Recently modified files
-- `src/RL/docs/AI_HANDOFF.md` — 2026-07-15T21:31:20-05:00
-- `src/RL/docs/PROJECT_STATE.json` — 2026-07-15T21:31:20-05:00
+- `src/RL/docs/AI_HANDOFF.md` — 2026-07-16T13:12:11-05:00
+- `src/RL/docs/PROJECT_STATE.json` — 2026-07-16T13:12:11-05:00
+- `src/RL/tools/inspection/__pycache__/smoke_test_events.cpython-312.pyc` — 2026-07-16T02:34:35-05:00
+- `src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc` — 2026-07-15T21:38:52-05:00
 - `src/RL/tools/launch/live_event_recording_test.py` — 2026-07-15T21:15:24-05:00
 - `src/RL/engine/bridge/event_stream.py` — 2026-07-15T21:13:39-05:00
-- `src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc` — 2026-07-15T21:11:19-05:00
 - `src/RL/tools/inspection/smoke_test_events.py` — 2026-07-15T20:51:41-05:00
 - `src/RL/tests/unit/__pycache__/test_jsonl_pipeline.cpython-312-pytest-7.4.3.pyc` — 2026-07-15T20:46:32-05:00
 - `src/RL/tests/unit/test_jsonl_pipeline.py` — 2026-07-15T20:46:28-05:00
@@ -62,7 +53,6 @@ M src/RL/docs/AI_HANDOFF.md
 - `src/RL/events/__pycache__/jsonl_writer.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
 - `src/RL/events/__pycache__/jsonl_reader.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
 - `src/RL/events/__pycache__/contracts.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
-- `src/RL/events/__pycache__/__init__.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
 
 ### Xonotic executable check
 - `xonotic-linux64-glx`: exists=`True`, executable=`True`

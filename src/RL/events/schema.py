@@ -1,18 +1,13 @@
-"""Helpers for serializing event payloads."""
+"""Event schema definitions."""
 
 from typing import Any, Dict
 
 from .contracts import Event
 
 
-EVENT_TYPE_FIELD = "type"
-EVENT_DATA_FIELD = "data"
-
-
 def to_payload(event: Event) -> Dict[str, Any]:
-    """Convert an event to the JSON Lines payload shape."""
-
+    """Convert an event into a JSON-serializable payload."""
     return {
-        EVENT_TYPE_FIELD: event.type,
-        EVENT_DATA_FIELD: event.data,
+        "type": event.type,
+        "data": event.data,
     }
