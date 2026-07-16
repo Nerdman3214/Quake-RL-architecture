@@ -24,58 +24,45 @@ Establish one real Xonotic observation/event channel and one real action channel
 ## Automatic repository snapshot
 
 <!-- AUTO-SNAPSHOT-START -->
-- Updated: `2026-07-14T12:53:52-05:00`
+- Updated: `2026-07-15T21:31:35-05:00`
 - Project exists: `True`
 - Xonotic exists: `True`
 - Git branch: `main`
-- Git HEAD: `a7bcf5e`
+- Git HEAD: `1e11527`
 
 ### Git status
 ```text
 M src/RL/docs/AI_HANDOFF.md
  M src/RL/docs/PROJECT_STATE.json
-?? event_recording/events.log
-?? src/RL/.gitignore
-?? src/RL/ARCHITECTURE.md
-?? src/RL/__init__.py
-?? src/RL/actions/
-?? src/RL/agents/
-?? src/RL/checkpoints/
-?? src/RL/config/
-?? src/RL/controller/
-?? src/RL/data/
-?? src/RL/docs/ODYSSEUS_HANDOFF.md
-?? src/RL/docs/__init__.py
-?? src/RL/docs/decisions/
-?? src/RL/engine/
-?? src/RL/env/
-?? src/RL/evaluation/
-?? src/RL/logs/
-?? src/RL/observations/
-?? src/RL/rewards/
-?? src/RL/runtime/
-?? src/RL/tests/
-?? src/RL/tools/
-?? src/RL/training/
-?? test.txt
+?? PROJECT_FILES.txt
+?? events.jsonl
+?? jsonl_writer.py
+?? src/RL/docs/EVENT_SCHEMA.md
+?? src/RL/engine/bridge/event_stream.py
+?? src/RL/events/
+?? src/RL/jsonl_reader.py
+?? src/RL/tests/unit/test_events.py
+?? src/RL/tests/unit/test_jsonl_pipeline.py
+?? src/RL/tools/inspection/smoke_test_events.py
+?? src/RL/tools/launch/live_event_recording_test.py
 ```
 
 ### Recently modified files
-- `src/RL/docs/AI_HANDOFF.md` — 2026-07-14T12:53:37-05:00
-- `src/RL/docs/PROJECT_STATE.json` — 2026-07-14T12:53:37-05:00
-- `src/RL/observations/contracts.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/rewards/contracts.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/runtime/launch.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/runtime/paths.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/runtime/validation.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/agents/baselines/contracts.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/engine/bridge/contracts.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/env/core/contracts.py` — 2026-07-10T12:46:19-05:00
-- `src/RL/__init__.py` — 2026-07-10T12:46:18-05:00
-- `src/RL/actions/contracts.py` — 2026-07-10T12:46:18-05:00
-- `src/RL/actions/__init__.py` — 2026-07-10T12:46:18-05:00
-- `src/RL/agents/__init__.py` — 2026-07-10T12:46:18-05:00
-- `src/RL/checkpoints/__init__.py` — 2026-07-10T12:46:18-05:00
+- `src/RL/docs/AI_HANDOFF.md` — 2026-07-15T21:31:20-05:00
+- `src/RL/docs/PROJECT_STATE.json` — 2026-07-15T21:31:20-05:00
+- `src/RL/tools/launch/live_event_recording_test.py` — 2026-07-15T21:15:24-05:00
+- `src/RL/engine/bridge/event_stream.py` — 2026-07-15T21:13:39-05:00
+- `src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc` — 2026-07-15T21:11:19-05:00
+- `src/RL/tools/inspection/smoke_test_events.py` — 2026-07-15T20:51:41-05:00
+- `src/RL/tests/unit/__pycache__/test_jsonl_pipeline.cpython-312-pytest-7.4.3.pyc` — 2026-07-15T20:46:32-05:00
+- `src/RL/tests/unit/test_jsonl_pipeline.py` — 2026-07-15T20:46:28-05:00
+- `src/RL/tests/unit/__pycache__/test_events.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/__pycache__/jsonl_reader.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/events/__pycache__/schema.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/events/__pycache__/jsonl_writer.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/events/__pycache__/jsonl_reader.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/events/__pycache__/contracts.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
+- `src/RL/events/__pycache__/__init__.cpython-312.pyc` — 2026-07-15T14:49:34-05:00
 
 ### Xonotic executable check
 - `xonotic-linux64-glx`: exists=`True`, executable=`True`

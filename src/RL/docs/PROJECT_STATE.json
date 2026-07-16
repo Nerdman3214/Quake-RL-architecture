@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-14T12:53:52-05:00",
+  "updated_at": "2026-07-15T21:31:35-05:00",
   "project_root": "/media/steven/WINPE2/Quake-RL-architecture",
   "project_exists": true,
   "xonotic_root": "/media/steven/WINPE2/Xonotic",
@@ -20,161 +20,161 @@
   },
   "git": {
     "available": true,
-    "status": "M src/RL/docs/AI_HANDOFF.md\n M src/RL/docs/PROJECT_STATE.json\n?? event_recording/events.log\n?? src/RL/.gitignore\n?? src/RL/ARCHITECTURE.md\n?? src/RL/__init__.py\n?? src/RL/actions/\n?? src/RL/agents/\n?? src/RL/checkpoints/\n?? src/RL/config/\n?? src/RL/controller/\n?? src/RL/data/\n?? src/RL/docs/ODYSSEUS_HANDOFF.md\n?? src/RL/docs/__init__.py\n?? src/RL/docs/decisions/\n?? src/RL/engine/\n?? src/RL/env/\n?? src/RL/evaluation/\n?? src/RL/logs/\n?? src/RL/observations/\n?? src/RL/rewards/\n?? src/RL/runtime/\n?? src/RL/tests/\n?? src/RL/tools/\n?? src/RL/training/\n?? test.txt",
+    "status": "M src/RL/docs/AI_HANDOFF.md\n M src/RL/docs/PROJECT_STATE.json\n?? PROJECT_FILES.txt\n?? events.jsonl\n?? jsonl_writer.py\n?? src/RL/docs/EVENT_SCHEMA.md\n?? src/RL/engine/bridge/event_stream.py\n?? src/RL/events/\n?? src/RL/jsonl_reader.py\n?? src/RL/tests/unit/test_events.py\n?? src/RL/tests/unit/test_jsonl_pipeline.py\n?? src/RL/tools/inspection/smoke_test_events.py\n?? src/RL/tools/launch/live_event_recording_test.py",
     "branch": "main",
-    "head": "a7bcf5e",
-    "diff_stat": "src/RL/docs/AI_HANDOFF.md      |  52 ++++++++++++--\n src/RL/docs/PROJECT_STATE.json | 160 ++++++++++++++++++++++++++++++++++++++---\n 2 files changed, 198 insertions(+), 14 deletions(-)"
+    "head": "1e11527",
+    "diff_stat": "src/RL/docs/AI_HANDOFF.md      |  69 +++++++---------\n src/RL/docs/PROJECT_STATE.json | 184 ++++++++++++++++++++---------------------\n 2 files changed, 120 insertions(+), 133 deletions(-)"
   },
   "recent_files": [
     {
       "path": "src/RL/docs/AI_HANDOFF.md",
-      "modified_at": "2026-07-14T12:53:37-05:00",
-      "size_bytes": 2851
+      "modified_at": "2026-07-15T21:31:20-05:00",
+      "size_bytes": 3011
     },
     {
       "path": "src/RL/docs/PROJECT_STATE.json",
-      "modified_at": "2026-07-14T12:53:37-05:00",
-      "size_bytes": 5337
+      "modified_at": "2026-07-15T21:31:20-05:00",
+      "size_bytes": 5792
     },
     {
-      "path": "src/RL/observations/contracts.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 410
+      "path": "src/RL/tools/launch/live_event_recording_test.py",
+      "modified_at": "2026-07-15T21:15:24-05:00",
+      "size_bytes": 1988
     },
     {
-      "path": "src/RL/rewards/contracts.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 404
+      "path": "src/RL/engine/bridge/event_stream.py",
+      "modified_at": "2026-07-15T21:13:39-05:00",
+      "size_bytes": 3029
     },
     {
-      "path": "src/RL/runtime/launch.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 1563
+      "path": "src/RL/engine/bridge/__pycache__/event_stream.cpython-312.pyc",
+      "modified_at": "2026-07-15T21:11:19-05:00",
+      "size_bytes": 2845
     },
     {
-      "path": "src/RL/runtime/paths.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 174
+      "path": "src/RL/tools/inspection/smoke_test_events.py",
+      "modified_at": "2026-07-15T20:51:41-05:00",
+      "size_bytes": 2137
     },
     {
-      "path": "src/RL/runtime/validation.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 1278
+      "path": "src/RL/tests/unit/__pycache__/test_jsonl_pipeline.cpython-312-pytest-7.4.3.pyc",
+      "modified_at": "2026-07-15T20:46:32-05:00",
+      "size_bytes": 2491
     },
     {
-      "path": "src/RL/agents/baselines/contracts.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 306
+      "path": "src/RL/tests/unit/test_jsonl_pipeline.py",
+      "modified_at": "2026-07-15T20:46:28-05:00",
+      "size_bytes": 706
     },
     {
-      "path": "src/RL/engine/bridge/contracts.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 597
+      "path": "src/RL/tests/unit/__pycache__/test_events.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 1128
     },
     {
-      "path": "src/RL/env/core/contracts.py",
-      "modified_at": "2026-07-10T12:46:19-05:00",
-      "size_bytes": 722
+      "path": "src/RL/__pycache__/jsonl_reader.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 1784
     },
     {
-      "path": "src/RL/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/__pycache__/schema.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 717
     },
     {
-      "path": "src/RL/actions/contracts.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 467
+      "path": "src/RL/events/__pycache__/jsonl_writer.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 2145
     },
     {
-      "path": "src/RL/actions/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/__pycache__/jsonl_reader.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 2339
     },
     {
-      "path": "src/RL/agents/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/__pycache__/contracts.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 762
     },
     {
-      "path": "src/RL/checkpoints/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T14:49:34-05:00",
+      "size_bytes": 406
     },
     {
-      "path": "src/RL/config/default.json",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 871
+      "path": "src/RL/events/jsonl_writer.py",
+      "modified_at": "2026-07-15T14:49:33-05:00",
+      "size_bytes": 921
     },
     {
-      "path": "src/RL/config/schema.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 1682
+      "path": "src/RL/events/__init__.py",
+      "modified_at": "2026-07-15T14:49:33-05:00",
+      "size_bytes": 208
     },
     {
-      "path": "src/RL/config/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/jsonl_reader.py",
+      "modified_at": "2026-07-15T13:17:23-05:00",
+      "size_bytes": 1579
     },
     {
-      "path": "src/RL/controller/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/docs/EVENT_SCHEMA.md",
+      "modified_at": "2026-07-15T13:17:23-05:00",
+      "size_bytes": 691
     },
     {
-      "path": "src/RL/data/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/contracts.py",
+      "modified_at": "2026-07-15T13:17:23-05:00",
+      "size_bytes": 269
     },
     {
-      "path": "src/RL/docs/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/events/schema.py",
+      "modified_at": "2026-07-15T13:17:23-05:00",
+      "size_bytes": 366
     },
     {
-      "path": "src/RL/engine/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/tests/unit/__pycache__/test_events.cpython-312-pytest-7.4.3.pyc",
+      "modified_at": "2026-07-15T13:16:41-05:00",
+      "size_bytes": 2923
     },
     {
-      "path": "src/RL/env/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/tests/unit/test_events.py",
+      "modified_at": "2026-07-15T13:16:40-05:00",
+      "size_bytes": 567
     },
     {
-      "path": "src/RL/evaluation/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/jsonl_reader.py",
+      "modified_at": "2026-07-15T03:20:49-05:00",
+      "size_bytes": 1000
     },
     {
-      "path": "src/RL/logs/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/training/self_play/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 134
     },
     {
-      "path": "src/RL/observations/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/training/preferences/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 136
     },
     {
-      "path": "src/RL/rewards/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/training/online_rl/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 134
     },
     {
-      "path": "src/RL/runtime/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/training/imitation/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 134
     },
     {
-      "path": "src/RL/tests/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/training/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 124
     },
     {
-      "path": "src/RL/tools/__init__.py",
-      "modified_at": "2026-07-10T12:46:18-05:00",
-      "size_bytes": 0
+      "path": "src/RL/tools/launch/__pycache__/__init__.cpython-312.pyc",
+      "modified_at": "2026-07-15T00:27:53-05:00",
+      "size_bytes": 128
     }
   ]
 }
