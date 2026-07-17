@@ -74,10 +74,16 @@ class XonoticUnifiedEventReader:
             data=data,
         )
 
+    def strip_ansi(self, raw_line: str) -> str:
+        """Remove terminal color codes from one server line."""
+
+        return self.human_reader.strip_ansi(raw_line)
+
     def parse_line(self, raw_line: str) -> Optional[Event]:
         """Parse one server line through the appropriate source."""
 
-        stripped = raw_line.strip()
+        clean_line = self.strip_ansi(raw_line)
+        stripped = clean_line.strip()
 
         if stripped.startswith(":"):
             event = self.eventlog_reader.parse_line(stripped)
@@ -99,7 +105,7 @@ class XonoticUnifiedEventReader:
                 authority_tier="primary",
             )
 
-        event = self.human_reader.parse_line(raw_line)
+        event = self.human_reader.parse_line(clean_line)
 
         if event is None:
             return None

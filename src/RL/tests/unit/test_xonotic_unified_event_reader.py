@@ -135,3 +135,24 @@ def test_unknown_structured_line_remains_primary() -> None:
         ":future_mode:event:value"
     )
     assert event.data["authority_tier"] == "primary"
+
+
+
+def test_ansi_colored_structured_line() -> None:
+    reader = XonoticUnifiedEventReader()
+
+    colored = (
+        "\x1b[31m:gamestart:dm_boil:match1"
+        "\x1b[0m"
+    )
+
+    assert reader.strip_ansi(colored) == (
+        ":gamestart:dm_boil:match1"
+    )
+
+    event = reader.parse_line(colored)
+
+    assert event is not None
+    assert event.type == "match_started"
+    assert event.data["game_mode"] == "dm"
+    assert event.data["map_name"] == "boil"
