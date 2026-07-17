@@ -19,7 +19,10 @@ from RL.engine.server.unified_event_reader import (
 )
 from RL.env.multiplayer import normalize_game_mode
 from RL.events import Event, JSONLWriter
-from RL.matchmaking import load_state
+from RL.matchmaking import (
+    load_state,
+    update_adaptive_state_from_session,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -55,6 +58,12 @@ MATCHMAKING_POLICIES = (
     "randomized",
     "adaptive",
 )
+
+ADAPTIVE_UPDATE_MODES = {
+    "ctf",
+    "dom",
+    "kh",
+}
 
 
 def game_mode_argument(value: str) -> str:
@@ -345,6 +354,15 @@ def parse_args(
     if skill_min > skill_max:
         parser.error(
             "--skill-range MIN must not exceed MAX"
+        )
+
+    if (
+        args.matchmaking == "adaptive"
+        and args.mode not in ADAPTIVE_UPDATE_MODES
+    ):
+        parser.error(
+            "--matchmaking adaptive currently supports "
+            "ctf, dom, and kh"
         )
 
     if args.matchmaking != "randomized":
@@ -639,7 +657,8 @@ def main(
                 "adaptive_matches": (
                     matchmaking.adaptive_matches
                 ),
-                "adaptive_state_read_only": (
+                "adaptive_state_read_only": False,
+                "adaptive_state_auto_update": (
                     matchmaking.policy == "adaptive"
                 ),
                 "command": command,
@@ -735,6 +754,23 @@ def main(
         )
         writer.close()
 
+        adaptive_update = None
+
+        if (
+            matchmaking.policy == "adaptive"
+            and matchmaking.adaptive_state_path
+            is not None
+        ):
+            adaptive_update = (
+                update_adaptive_state_from_session(
+                    session_path=output_path,
+                    state_path=Path(
+                        matchmaking.adaptive_state_path
+                    ),
+                    controlled_player="Noobnog",
+                )
+            )
+
         print()
         print("=" * 72)
         print("RECORDING SUMMARY")
@@ -749,6 +785,45 @@ def main(
             f"{parsed_event_count}"
         )
         print("Session-ended record written.")
+
+        if adaptive_update is not None:
+            print(
+                "Adaptive update status: "
+                f"{adaptive_update.status}"
+            )
+            print(
+                "Adaptive completed matches: "
+                f"{adaptive_update.completed_matches}"
+            )
+            print(
+                "Adaptive matches applied: "
+                f"{adaptive_update.updated_matches}"
+            )
+            print(
+                "Adaptive duplicates skipped: "
+                f"{adaptive_update.duplicate_matches}"
+            )
+
+            if adaptive_update.rating is not None:
+                print(
+                    "Adaptive rating: "
+                    f"{adaptive_update.rating:.6f}"
+                )
+
+            if (
+                adaptive_update.current_skill
+                is not None
+            ):
+                print(
+                    "Adaptive next skill: "
+                    f"{adaptive_update.current_skill}"
+                )
+
+            if adaptive_update.error is not None:
+                print(
+                    "Adaptive update error: "
+                    f"{adaptive_update.error}"
+                )
 
 
 if __name__ == "__main__":

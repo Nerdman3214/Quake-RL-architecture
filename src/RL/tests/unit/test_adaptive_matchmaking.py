@@ -147,3 +147,57 @@ def test_sustained_losses_lower_skill() -> None:
 
     assert state.current_skill == 3
     assert state.last_adjustment_match == 3
+
+
+def test_version_one_state_loads_without_match_keys(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "agent_rating.json"
+
+    path.write_text(
+        """
+{
+  "version": 1,
+  "rating": 4.5,
+  "current_skill": 4,
+  "matches": 2,
+  "last_adjustment_match": 0,
+  "recent_matches": []
+}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    state = load_state(path)
+
+    assert state.rating == 4.5
+    assert state.matches == 2
+    assert state.processed_match_keys == ()
+
+
+def test_explicit_match_key_is_idempotent() -> None:
+    performance = make_performance(
+        won=True,
+        score_margin=0.5,
+        combat_score=0.3,
+        objective_score=0.5,
+    )
+
+    first = update_state(
+        AdaptiveState(),
+        performance,
+        match_key="session:0",
+    )
+
+    second = update_state(
+        first,
+        performance,
+        match_key="session:0",
+    )
+
+    assert second == first
+    assert second.matches == 1
+    assert second.processed_match_keys == (
+        "session:0",
+    )

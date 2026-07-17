@@ -185,6 +185,10 @@ def test_adaptive_missing_state_uses_defaults_read_only(
 
     args = parse_args(
         [
+            "--mode",
+            "kh",
+            "--map",
+            "stormkeep",
             "--matchmaking",
             "adaptive",
             "--max-players",
@@ -230,6 +234,10 @@ def test_adaptive_matchmaking_loads_persisted_skill(
 
     args = parse_args(
         [
+            "--mode",
+            "kh",
+            "--map",
+            "stormkeep",
             "--matchmaking",
             "adaptive",
             "--max-players",
@@ -290,6 +298,10 @@ def test_adaptive_rejects_out_of_range_skill(
 
     args = parse_args(
         [
+            "--mode",
+            "kh",
+            "--map",
+            "stormkeep",
             "--matchmaking",
             "adaptive",
             "--max-players",
@@ -306,3 +318,15 @@ def test_adaptive_rejects_out_of_range_skill(
         match="outside the supported range",
     ):
         resolve_matchmaking(args)
+
+
+def test_adaptive_rejects_unsupported_mode() -> None:
+    with pytest.raises(SystemExit):
+        parse_args(
+            [
+                "--mode",
+                "dm",
+                "--matchmaking",
+                "adaptive",
+            ]
+        )

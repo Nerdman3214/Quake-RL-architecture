@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 DEFAULT_RATING = 4.0
 DEFAULT_SKILL = 4
 DEFAULT_HISTORY_LIMIT = 10
@@ -57,6 +57,9 @@ class AdaptiveState:
     matches: int = 0
     last_adjustment_match: int = 0
     recent_matches: tuple[dict[str, Any], ...] = field(
+        default_factory=tuple
+    )
+    processed_match_keys: tuple[str, ...] = field(
         default_factory=tuple
     )
 
@@ -127,10 +130,26 @@ def load_state(path: Path) -> AdaptiveState:
             "recent_matches must be a JSON array"
         )
 
+    processed_keys = data.get(
+        "processed_match_keys",
+        [],
+    )
+
+    if not isinstance(processed_keys, list):
+        raise ValueError(
+            "processed_match_keys must be a JSON array"
+        )
+
     normalized_history = tuple(
         dict(item)
         for item in history
         if isinstance(item, dict)
+    )
+
+    normalized_processed_keys = tuple(
+        item
+        for item in processed_keys
+        if isinstance(item, str)
     )
 
     return AdaptiveState(
@@ -148,6 +167,9 @@ def load_state(path: Path) -> AdaptiveState:
             data.get("last_adjustment_match", 0)
         ),
         recent_matches=normalized_history,
+        processed_match_keys=(
+            normalized_processed_keys
+        ),
     )
 
 
@@ -182,12 +204,19 @@ def update_state(
     state: AdaptiveState,
     performance: MatchPerformance,
     *,
+    match_key: str | None = None,
     minimum_skill: int = 0,
     maximum_skill: int = 8,
     history_limit: int = DEFAULT_HISTORY_LIMIT,
     decision_window: int = DEFAULT_DECISION_WINDOW,
 ) -> AdaptiveState:
     """Record one match and conservatively adjust difficulty."""
+
+    if (
+        match_key is not None
+        and match_key in state.processed_match_keys
+    ):
+        return state
 
     index = performance_index(performance)
 
@@ -220,9 +249,21 @@ def update_state(
         "bot_count": performance.bot_count,
     }
 
+    if match_key is not None:
+        record["match_key"] = match_key
+
     history = (
         state.recent_matches + (record,)
     )[-history_limit:]
+
+    processed_match_keys = (
+        state.processed_match_keys
+        + (
+            (match_key,)
+            if match_key is not None
+            else ()
+        )
+    )
 
     matches = state.matches + 1
 
@@ -328,4 +369,5 @@ def update_state(
         matches=matches,
         last_adjustment_match=last_adjustment,
         recent_matches=history,
+        processed_match_keys=processed_match_keys,
     )
