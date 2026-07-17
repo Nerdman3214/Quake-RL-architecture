@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import random
+import secrets
 import socket
 import subprocess
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Sequence
@@ -31,6 +34,15 @@ DEFAULT_MAP = "boil"
 DEFAULT_MAX_PLAYERS = 4
 DEFAULT_BOT_COUNT = 3
 DEFAULT_BOT_SKILL = 4
+
+DEFAULT_MATCHMAKING = "fixed"
+DEFAULT_BOT_COUNT_RANGE = (7, 15)
+DEFAULT_BOT_SKILL_RANGE = (2, 7)
+
+MATCHMAKING_POLICIES = (
+    "fixed",
+    "randomized",
+)
 
 
 def game_mode_argument(value: str) -> str:
@@ -71,6 +83,88 @@ def positive_integer(value: str) -> int:
         )
 
     return parsed
+
+
+def bot_count_argument(value: str) -> int | str:
+    """Parse a fixed bot count or the automatic marker."""
+
+    normalized = value.strip().casefold()
+
+    if normalized == "auto":
+        return "auto"
+
+    return nonnegative_integer(value)
+
+
+def bot_skill_argument(value: str) -> int | str:
+    """Parse a fixed bot skill or the random marker."""
+
+    normalized = value.strip().casefold()
+
+    if normalized == "random":
+        return "random"
+
+    return nonnegative_integer(value)
+
+
+@dataclass(frozen=True)
+class MatchmakingSelection:
+    """Concrete server settings selected for one session."""
+
+    policy: str
+    bot_count: int
+    bot_skill: int
+    seed: Optional[int]
+    requested_bot_count: int | str
+    requested_bot_skill: int | str
+    bot_count_range: tuple[int, int]
+    bot_skill_range: tuple[int, int]
+
+
+def resolve_matchmaking(
+    args: argparse.Namespace,
+) -> MatchmakingSelection:
+    """Resolve requested fixed or randomized bot settings."""
+
+    bot_count_range = tuple(args.bot_count_range)
+    bot_skill_range = tuple(args.skill_range)
+
+    seed = args.seed
+
+    if (
+        args.matchmaking == "randomized"
+        and seed is None
+    ):
+        seed = secrets.randbits(63)
+
+    rng = random.Random(seed)
+
+    if args.bots == "auto":
+        bot_count = rng.randint(
+            bot_count_range[0],
+            bot_count_range[1],
+        )
+    else:
+        bot_count = args.bots
+
+    if args.skill == "random":
+        bot_skill = rng.randint(
+            bot_skill_range[0],
+            bot_skill_range[1],
+        )
+    else:
+        bot_skill = args.skill
+
+    return MatchmakingSelection(
+        policy=args.matchmaking,
+        bot_count=bot_count,
+        bot_skill=bot_skill,
+        seed=seed,
+        requested_bot_count=args.bots,
+        requested_bot_skill=args.skill,
+        bot_count_range=bot_count_range,
+        bot_skill_range=bot_skill_range,
+    )
 
 
 def parse_args(
@@ -117,15 +211,62 @@ def parse_args(
     )
     parser.add_argument(
         "--bots",
-        type=nonnegative_integer,
+        type=bot_count_argument,
         default=DEFAULT_BOT_COUNT,
-        help=f"Number of bots. Default: {DEFAULT_BOT_COUNT}.",
+        help=(
+            "Number of bots or 'auto'. "
+            f"Default: {DEFAULT_BOT_COUNT}."
+        ),
     )
     parser.add_argument(
         "--skill",
-        type=nonnegative_integer,
+        type=bot_skill_argument,
         default=DEFAULT_BOT_SKILL,
-        help=f"Bot skill value. Default: {DEFAULT_BOT_SKILL}.",
+        help=(
+            "Bot skill value or 'random'. "
+            f"Default: {DEFAULT_BOT_SKILL}."
+        ),
+    )
+    parser.add_argument(
+        "--matchmaking",
+        choices=MATCHMAKING_POLICIES,
+        default=DEFAULT_MATCHMAKING,
+        help=(
+            "Bot matchmaking policy. "
+            f"Default: {DEFAULT_MATCHMAKING}."
+        ),
+    )
+    parser.add_argument(
+        "--bot-count-range",
+        nargs=2,
+        type=nonnegative_integer,
+        metavar=("MIN", "MAX"),
+        default=DEFAULT_BOT_COUNT_RANGE,
+        help=(
+            "Inclusive bot-count range used with "
+            "'--bots auto'. Default: 7 15."
+        ),
+    )
+    parser.add_argument(
+        "--skill-range",
+        nargs=2,
+        type=nonnegative_integer,
+        metavar=("MIN", "MAX"),
+        default=DEFAULT_BOT_SKILL_RANGE,
+        help=(
+            "Inclusive skill range used with "
+            "'--skill random'. Default: 2 7."
+        ),
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help=(
+            "Optional random seed. When omitted in randomized "
+            "mode, a reproducible session seed is generated and "
+            "written to metadata."
+        ),
     )
 
     args = parser.parse_args(argv)
@@ -133,7 +274,40 @@ def parse_args(
     if not args.map_name.strip():
         parser.error("--map must not be blank")
 
-    if args.bots >= args.max_players:
+    bot_min, bot_max = args.bot_count_range
+    skill_min, skill_max = args.skill_range
+
+    if bot_min > bot_max:
+        parser.error(
+            "--bot-count-range MIN must not exceed MAX"
+        )
+
+    if skill_min > skill_max:
+        parser.error(
+            "--skill-range MIN must not exceed MAX"
+        )
+
+    if args.matchmaking == "fixed":
+        if args.bots == "auto":
+            parser.error(
+                "--bots auto requires "
+                "--matchmaking randomized"
+            )
+
+        if args.skill == "random":
+            parser.error(
+                "--skill random requires "
+                "--matchmaking randomized"
+            )
+
+    if args.bots == "auto":
+        if bot_max >= args.max_players:
+            parser.error(
+                "--bot-count-range MAX must be less than "
+                "--max-players so the controlled client "
+                "has an available slot"
+            )
+    elif args.bots >= args.max_players:
         parser.error(
             "--bots must be less than --max-players so the "
             "controlled client has an available slot"
@@ -260,6 +434,7 @@ def main(
     """Run one live event-recording session."""
 
     args = parse_args(argv)
+    matchmaking = resolve_matchmaking(args)
 
     if not SERVER_EXECUTABLE.is_file():
         print(
@@ -300,8 +475,8 @@ def main(
         server_config_name=server_config_path.name,
         port=args.port,
         max_players=args.max_players,
-        bot_count=args.bots,
-        bot_skill=args.skill,
+        bot_count=matchmaking.bot_count,
+        bot_skill=matchmaking.bot_skill,
     )
 
     print("=" * 72)
@@ -314,8 +489,10 @@ def main(
     print(f"Server config: {server_config_path}")
     print(f"Port: {args.port}")
     print(f"Maximum players: {args.max_players}")
-    print(f"Bots: {args.bots}")
-    print(f"Bot skill: {args.skill}")
+    print(f"Matchmaking: {matchmaking.policy}")
+    print(f"Matchmaking seed: {matchmaking.seed}")
+    print(f"Bots: {matchmaking.bot_count}")
+    print(f"Bot skill: {matchmaking.bot_skill}")
     print(f"JSONL output: {output_path}")
     print()
     print(
@@ -357,8 +534,22 @@ def main(
                 ),
                 "port": args.port,
                 "max_players": args.max_players,
-                "bot_count": args.bots,
-                "bot_skill": args.skill,
+                "matchmaking": matchmaking.policy,
+                "matchmaking_seed": matchmaking.seed,
+                "requested_bot_count": (
+                    matchmaking.requested_bot_count
+                ),
+                "requested_bot_skill": (
+                    matchmaking.requested_bot_skill
+                ),
+                "bot_count_range": list(
+                    matchmaking.bot_count_range
+                ),
+                "bot_skill_range": list(
+                    matchmaking.bot_skill_range
+                ),
+                "bot_count": matchmaking.bot_count,
+                "bot_skill": matchmaking.bot_skill,
                 "command": command,
             },
         )
