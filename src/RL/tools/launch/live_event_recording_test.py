@@ -19,6 +19,7 @@ from RL.engine.server.unified_event_reader import (
 )
 from RL.env.multiplayer import normalize_game_mode
 from RL.events import Event, JSONLWriter
+from RL.matchmaking import load_state
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -39,9 +40,20 @@ DEFAULT_MATCHMAKING = "fixed"
 DEFAULT_BOT_COUNT_RANGE = (7, 15)
 DEFAULT_BOT_SKILL_RANGE = (2, 7)
 
+DEFAULT_ADAPTIVE_STATE_PATH = (
+    REPOSITORY_ROOT
+    / "data"
+    / "matchmaking"
+    / "agent_rating.json"
+)
+
+ADAPTIVE_MIN_SKILL = 0
+ADAPTIVE_MAX_SKILL = 8
+
 MATCHMAKING_POLICIES = (
     "fixed",
     "randomized",
+    "adaptive",
 )
 
 
@@ -119,40 +131,74 @@ class MatchmakingSelection:
     requested_bot_skill: int | str
     bot_count_range: tuple[int, int]
     bot_skill_range: tuple[int, int]
+    adaptive_state_path: Optional[str]
+    adaptive_rating: Optional[float]
+    adaptive_matches: Optional[int]
 
 
 def resolve_matchmaking(
     args: argparse.Namespace,
 ) -> MatchmakingSelection:
-    """Resolve requested fixed or randomized bot settings."""
+    """Resolve fixed, randomized, or adaptive settings."""
 
     bot_count_range = tuple(args.bot_count_range)
     bot_skill_range = tuple(args.skill_range)
 
     seed = args.seed
+    adaptive_state_path: Optional[str] = None
+    adaptive_rating: Optional[float] = None
+    adaptive_matches: Optional[int] = None
 
-    if (
-        args.matchmaking == "randomized"
-        and seed is None
-    ):
-        seed = secrets.randbits(63)
+    if args.matchmaking == "randomized":
+        if seed is None:
+            seed = secrets.randbits(63)
 
-    rng = random.Random(seed)
+        rng = random.Random(seed)
 
-    if args.bots == "auto":
-        bot_count = rng.randint(
-            bot_count_range[0],
-            bot_count_range[1],
-        )
+        if args.bots == "auto":
+            bot_count = rng.randint(
+                bot_count_range[0],
+                bot_count_range[1],
+            )
+        else:
+            bot_count = args.bots
+
+        if args.skill == "random":
+            bot_skill = rng.randint(
+                bot_skill_range[0],
+                bot_skill_range[1],
+            )
+        else:
+            bot_skill = args.skill
+
+    elif args.matchmaking == "adaptive":
+        state_path = Path(
+            args.adaptive_state
+        ).expanduser().resolve()
+
+        state = load_state(state_path)
+
+        bot_count = args.bots
+        bot_skill = state.current_skill
+
+        if not (
+            ADAPTIVE_MIN_SKILL
+            <= bot_skill
+            <= ADAPTIVE_MAX_SKILL
+        ):
+            raise ValueError(
+                "Adaptive state current_skill "
+                f"{bot_skill} is outside the supported "
+                f"range {ADAPTIVE_MIN_SKILL} through "
+                f"{ADAPTIVE_MAX_SKILL}"
+            )
+
+        adaptive_state_path = str(state_path)
+        adaptive_rating = state.rating
+        adaptive_matches = state.matches
+
     else:
         bot_count = args.bots
-
-    if args.skill == "random":
-        bot_skill = rng.randint(
-            bot_skill_range[0],
-            bot_skill_range[1],
-        )
-    else:
         bot_skill = args.skill
 
     return MatchmakingSelection(
@@ -164,6 +210,9 @@ def resolve_matchmaking(
         requested_bot_skill=args.skill,
         bot_count_range=bot_count_range,
         bot_skill_range=bot_skill_range,
+        adaptive_state_path=adaptive_state_path,
+        adaptive_rating=adaptive_rating,
+        adaptive_matches=adaptive_matches,
     )
 
 
@@ -268,6 +317,17 @@ def parse_args(
             "written to metadata."
         ),
     )
+    parser.add_argument(
+        "--adaptive-state",
+        type=Path,
+        default=DEFAULT_ADAPTIVE_STATE_PATH,
+        help=(
+            "Adaptive rating JSON path used by "
+            "'--matchmaking adaptive'. "
+            "The live recorder reads this file but does not "
+            "modify it."
+        ),
+    )
 
     args = parser.parse_args(argv)
 
@@ -287,7 +347,7 @@ def parse_args(
             "--skill-range MIN must not exceed MAX"
         )
 
-    if args.matchmaking == "fixed":
+    if args.matchmaking != "randomized":
         if args.bots == "auto":
             parser.error(
                 "--bots auto requires "
@@ -434,7 +494,12 @@ def main(
     """Run one live event-recording session."""
 
     args = parse_args(argv)
-    matchmaking = resolve_matchmaking(args)
+
+    try:
+        matchmaking = resolve_matchmaking(args)
+    except ValueError as error:
+        print(f"ERROR: {error}")
+        return 2
 
     if not SERVER_EXECUTABLE.is_file():
         print(
@@ -493,6 +558,21 @@ def main(
     print(f"Matchmaking seed: {matchmaking.seed}")
     print(f"Bots: {matchmaking.bot_count}")
     print(f"Bot skill: {matchmaking.bot_skill}")
+
+    if matchmaking.policy == "adaptive":
+        print(
+            "Adaptive state: "
+            f"{matchmaking.adaptive_state_path}"
+        )
+        print(
+            "Adaptive rating: "
+            f"{matchmaking.adaptive_rating}"
+        )
+        print(
+            "Adaptive completed matches: "
+            f"{matchmaking.adaptive_matches}"
+        )
+
     print(f"JSONL output: {output_path}")
     print()
     print(
@@ -550,6 +630,18 @@ def main(
                 ),
                 "bot_count": matchmaking.bot_count,
                 "bot_skill": matchmaking.bot_skill,
+                "adaptive_state_path": (
+                    matchmaking.adaptive_state_path
+                ),
+                "adaptive_rating": (
+                    matchmaking.adaptive_rating
+                ),
+                "adaptive_matches": (
+                    matchmaking.adaptive_matches
+                ),
+                "adaptive_state_read_only": (
+                    matchmaking.policy == "adaptive"
+                ),
                 "command": command,
             },
         )
