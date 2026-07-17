@@ -12,7 +12,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Callable, Optional, Sequence, TextIO
 
 from RL.engine.server.unified_event_reader import (
     XonoticUnifiedEventReader,
@@ -826,5 +826,22 @@ def main(
                 )
 
 
+def run_cli(
+    main_function: Callable[[], int] = main,
+    output: TextIO = sys.stdout,
+) -> int:
+    """Run the CLI without a traceback when its output pipe closes."""
+
+    try:
+        return main_function()
+    except BrokenPipeError:
+        try:
+            output.close()
+        except OSError:
+            pass
+
+        return 0
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_cli())

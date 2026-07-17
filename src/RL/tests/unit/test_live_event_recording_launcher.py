@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+import RL.tools.launch.live_event_recording_test as launcher
+
 from RL.matchmaking import AdaptiveState, save_state
 from RL.tools.launch.live_event_recording_test import (
     build_command,
@@ -330,3 +332,23 @@ def test_adaptive_rejects_unsupported_mode() -> None:
                 "adaptive",
             ]
         )
+
+
+def test_run_cli_suppresses_broken_pipe() -> None:
+    class ClosingOutput:
+        def __init__(self) -> None:
+            self.closed = False
+
+        def close(self) -> None:
+            self.closed = True
+
+    def broken_main() -> int:
+        raise BrokenPipeError
+
+    output = ClosingOutput()
+
+    assert launcher.run_cli(
+        main_function=broken_main,
+        output=output,
+    ) == 0
+    assert output.closed
