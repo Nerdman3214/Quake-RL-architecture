@@ -147,3 +147,58 @@ def test_spectator_team_is_named() -> None:
     assert event.data["player_name"] == "Noobnog"
     assert event.data["team"] == "SPECTATOR"
     assert event.data["join_type"] == "4"
+
+
+
+def test_real_ctf_line_uses_final_player_id() -> None:
+    from RL.engine.server.eventlog_reader import (
+        XonoticEventLogReader,
+    )
+
+    reader = XonoticEventLogReader()
+
+    reader.parse_line(
+        ":gamestart:ctf_runningmanctf:match1"
+    )
+    reader.parse_line(
+        ":join:1:1:127.0.0.1:Noobnog"
+    )
+
+    event = reader.parse_line(
+        ":ctf:steal:5:14:1"
+    )
+
+    assert event is not None
+    assert event.type == "ctf_flag_event"
+    assert event.data["player_id"] == "1"
+    assert event.data["player_name"] == "Noobnog"
+
+
+def test_recordset_uses_active_match_context() -> None:
+    from RL.engine.server.eventlog_reader import (
+        XonoticEventLogReader,
+    )
+
+    reader = XonoticEventLogReader()
+
+    reader.parse_line(
+        ":gamestart:ctf_runningmanctf:match1"
+    )
+    ctf_event = reader.parse_line(
+        ":recordset:1:22.933319"
+    )
+
+    assert ctf_event is not None
+    assert ctf_event.type == (
+        "ctf_capture_record_set"
+    )
+
+    reader.parse_line(
+        ":gamestart:rc_runningman:match2"
+    )
+    race_event = reader.parse_line(
+        ":recordset:1:18.000000"
+    )
+
+    assert race_event is not None
+    assert race_event.type == "race_record_set"

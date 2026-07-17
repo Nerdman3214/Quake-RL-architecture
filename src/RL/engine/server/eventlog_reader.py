@@ -86,6 +86,7 @@ class XonoticEventLogReader:
             mode_data = self._mode_data(game_type_map)
 
             self.current_raw_game_type = game_type_map
+            self.current_game_mode = mode_data["game_mode"]
             self.current_map = mode_data["map_name"]
             self.current_match_id = match_id
 
@@ -252,8 +253,26 @@ class XonoticEventLogReader:
         if line.startswith(":ctf:"):
             parts = line.split(":")
             action = parts[2]
-            flag_color = parts[3] if len(parts) > 3 else None
-            player_id = parts[4] if len(parts) > 4 else None
+            flag_color = (
+                parts[3]
+                if len(parts) > 3
+                else None
+            )
+
+            # Real Xonotic CTF lines contain both a team ID
+            # and a final player ID:
+            #
+            # :ctf:steal:5:14:1
+            #
+            # Older synthetic tests used the shorter form:
+            #
+            # :ctf:steal:5:1
+            if len(parts) > 5:
+                player_id = parts[5] or None
+            elif len(parts) > 4:
+                player_id = parts[4] or None
+            else:
+                player_id = None
 
             return Event(
                 type="ctf_flag_event",
@@ -325,6 +344,7 @@ class XonoticEventLogReader:
         if line.startswith(":scores:"):
             parts = line.split(":", 3)
             mode_data = self._mode_data(parts[2])
+            self.current_game_mode = mode_data.get("game_mode")
 
             return Event(
                 type="score_section_started",
@@ -418,11 +438,30 @@ class XonoticEventLogReader:
             parts = line.split(":", 3)
             player_id = parts[2]
 
+            current_mode = getattr(
+                self,
+                "current_game_mode",
+                None,
+            )
+            mode_value = getattr(
+                current_mode,
+                "value",
+                current_mode,
+            )
+
+            event_type = (
+                "ctf_capture_record_set"
+                if str(mode_value).casefold() == "ctf"
+                else "race_record_set"
+            )
+
             return Event(
-                type="race_record_set",
+                type=event_type,
                 data={
                     "player_id": player_id,
-                    "player_name": self._player_name(player_id),
+                    "player_name": self._player_name(
+                        player_id
+                    ),
                     "time_seconds": parts[3],
                     "raw_line": line,
                 },

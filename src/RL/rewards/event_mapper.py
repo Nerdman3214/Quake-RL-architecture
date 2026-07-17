@@ -39,6 +39,7 @@ class RewardMapper:
         self.controlled_team = controlled_team
         self.weights = weights or RewardWeights()
         self.current_mode: Optional[GameMode] = None
+        self._win_reward_awarded = False
 
     @property
     def current_profile(
@@ -119,6 +120,7 @@ class RewardMapper:
 
     def _set_match_mode(self, value: object) -> None:
         self.controlled_team = None
+        self._win_reward_awarded = False
 
         if not isinstance(value, str):
             self.current_mode = None
@@ -128,6 +130,14 @@ class RewardMapper:
             self.current_mode = normalize_game_mode(value)
         except ValueError:
             self.current_mode = None
+
+    def _reward_win_once(self) -> RewardLedger:
+        if self._win_reward_awarded:
+            return RewardLedger()
+
+        self._win_reward_awarded = True
+
+        return RewardLedger(win=self.weights.win)
 
     def _map_player_kill(
         self,
@@ -264,6 +274,10 @@ class RewardMapper:
             self._set_match_mode(data.get("game_mode"))
             return RewardLedger()
 
+        if event_type == "match_restarted":
+            self._win_reward_awarded = False
+            return RewardLedger()
+
         if event_type in {
             "player_now_playing",
             "player_team_changed",
@@ -314,9 +328,7 @@ class RewardMapper:
             return self._map_keyhunt_event(data)
 
         if event_type == "control_point_captured":
-            if self._is_controlled_team(
-                data.get("team")
-            ):
+            if self._is_controlled_team(data.get("team")):
                 return RewardLedger(
                     objective=self.weights.objective
                 )
@@ -327,19 +339,13 @@ class RewardMapper:
             if self._is_controlled_player(
                 data.get("player_name")
             ):
-                return RewardLedger(
-                    win=self.weights.win
-                )
+                return self._reward_win_once()
 
             return RewardLedger()
 
         if event_type == "team_match_win":
-            if self._is_controlled_team(
-                data.get("team")
-            ):
-                return RewardLedger(
-                    win=self.weights.win
-                )
+            if self._is_controlled_team(data.get("team")):
+                return self._reward_win_once()
 
             return RewardLedger()
 
@@ -348,9 +354,7 @@ class RewardMapper:
                 data.get("player_name")
             ):
                 return RewardLedger(
-                    item_pickup=(
-                        self.weights.item_pickup
-                    )
+                    item_pickup=self.weights.item_pickup
                 )
 
             return RewardLedger()
@@ -360,9 +364,7 @@ class RewardMapper:
                 data.get("player_name")
             ):
                 return RewardLedger(
-                    first_blood=(
-                        self.weights.first_blood
-                    )
+                    first_blood=self.weights.first_blood
                 )
 
             return RewardLedger()
@@ -382,9 +384,7 @@ class RewardMapper:
                 data.get("player_name")
             ):
                 return RewardLedger(
-                    disconnect=(
-                        self.weights.disconnect
-                    )
+                    disconnect=self.weights.disconnect
                 )
 
             return RewardLedger()

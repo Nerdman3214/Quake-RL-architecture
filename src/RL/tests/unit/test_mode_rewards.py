@@ -220,3 +220,72 @@ def test_unverified_keyhunt_actions_default_to_zero() -> None:
 
         assert result.keyhunt == 0.0
         assert result.is_zero
+
+
+
+def test_team_and_player_win_reward_only_once() -> None:
+    from RL.events import Event
+    from RL.rewards import RewardMapper
+
+    mapper = RewardMapper("Noobnog")
+
+    mapper.map_event(
+        Event(
+            type="match_started",
+            data={"game_mode": "ctf"},
+        )
+    )
+    mapper.map_event(
+        Event(
+            type="player_team_changed",
+            data={
+                "player_name": "Noobnog",
+                "team": "BLUE",
+            },
+        )
+    )
+
+    team_reward = mapper.map_event(
+        Event(
+            type="team_match_win",
+            data={"team": "BLUE"},
+        )
+    )
+    player_reward = mapper.map_event(
+        Event(
+            type="player_match_win",
+            data={"player_name": "Noobnog"},
+        )
+    )
+
+    assert team_reward.win == 5.0
+    assert player_reward.win == 0.0
+    assert (team_reward + player_reward).win == 5.0
+
+
+def test_real_structured_ctf_events_generate_rewards() -> None:
+    from RL.engine.server.eventlog_reader import (
+        XonoticEventLogReader,
+    )
+    from RL.rewards import RewardLedger, RewardMapper
+
+    reader = XonoticEventLogReader()
+    mapper = RewardMapper("Noobnog")
+    ledger = RewardLedger()
+
+    lines = [
+        ":gamestart:ctf_runningmanctf:match1",
+        ":join:1:1:127.0.0.1:Noobnog",
+        ":team:1:14:2",
+        ":ctf:steal:5:14:1",
+        ":ctf:capture:5:14:1",
+        ":ctf:dropped:14:14:1",
+    ]
+
+    for line in lines:
+        event = reader.parse_line(line)
+
+        assert event is not None
+        ledger = ledger + mapper.map_event(event)
+
+    assert ledger.ctf == 3.0
