@@ -180,6 +180,13 @@ def test_team_rewards_after_team_is_observed() -> None:
 def test_controlled_disconnect() -> None:
     mapper = RewardMapper("Noobnog")
 
+    mapper.map_event(
+        make_event(
+            "match_started",
+            game_mode="dm",
+        )
+    )
+
     controlled = mapper.map_event(
         make_event(
             "player_disconnected",
@@ -243,3 +250,47 @@ def test_default_first_blood_reward() -> None:
 
     assert result.first_blood == 0.25
     assert result.total == 0.25
+
+
+
+def test_disconnect_penalty_only_during_active_match() -> None:
+    mapper = RewardMapper("Noobnog")
+
+    mapper.map_event(
+        Event(
+            type="match_started",
+            data={"game_mode": "dm"},
+        )
+    )
+
+    active_disconnect = mapper.map_event(
+        Event(
+            type="player_disconnected",
+            data={"player_name": "Noobnog"},
+        )
+    )
+
+    assert active_disconnect.disconnect == -2.0
+
+    mapper.map_event(
+        Event(
+            type="match_started",
+            data={"game_mode": "dm"},
+        )
+    )
+    mapper.map_event(
+        Event(
+            type="match_ended",
+            data={},
+        )
+    )
+
+    completed_disconnect = mapper.map_event(
+        Event(
+            type="player_disconnected",
+            data={"player_name": "Noobnog"},
+        )
+    )
+
+    assert completed_disconnect.disconnect == 0.0
+    assert completed_disconnect.is_zero

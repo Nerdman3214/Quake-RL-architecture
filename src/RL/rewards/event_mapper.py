@@ -40,6 +40,7 @@ class RewardMapper:
         self.weights = weights or RewardWeights()
         self.current_mode: Optional[GameMode] = None
         self._win_reward_awarded = False
+        self._match_active = False
 
     @property
     def current_profile(
@@ -121,6 +122,7 @@ class RewardMapper:
     def _set_match_mode(self, value: object) -> None:
         self.controlled_team = None
         self._win_reward_awarded = False
+        self._match_active = True
 
         if not isinstance(value, str):
             self.current_mode = None
@@ -276,6 +278,11 @@ class RewardMapper:
 
         if event_type == "match_restarted":
             self._win_reward_awarded = False
+            self._match_active = True
+            return RewardLedger()
+
+        if event_type == "match_ended":
+            self._match_active = False
             return RewardLedger()
 
         if event_type in {
@@ -380,8 +387,11 @@ class RewardMapper:
             return RewardLedger()
 
         if event_type == "player_disconnected":
-            if self._is_controlled_player(
-                data.get("player_name")
+            if (
+                self._match_active
+                and self._is_controlled_player(
+                    data.get("player_name")
+                )
             ):
                 return RewardLedger(
                     disconnect=self.weights.disconnect
