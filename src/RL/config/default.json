@@ -19,11 +19,11 @@
     "agent_name": "rlAGENT"
   },
   "environment": {
-    "observation_version": "v1",
+    "observation_version": "v2",
     "action_version": "v1",
     "reward_version": "v1",
     "frame_width": 160,
-    "frame_height": 120,
+    "frame_height": 90,
     "frame_stack": 4,
     "action_repeat": 4
   },
