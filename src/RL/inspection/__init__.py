@@ -14,10 +14,17 @@ from RL.inspection.jsonl import (
     InspectionJSONLWriter,
     InspectionRecord,
 )
+from RL.inspection.report import (
+    EpisodeReport,
+    build_episode_report,
+    render_episode_report_text,
+    write_episode_report_files,
+)
 
 __all__ = [
     "AgentTransition",
     "EpisodeEnded",
+    "EpisodeReport",
     "EpisodeStarted",
     "FrameSnapshot",
     "GoalSnapshot",
@@ -26,4 +33,7 @@ __all__ = [
     "InspectionRecord",
     "ObservationSnapshot",
     "PolicyDecision",
+    "build_episode_report",
+    "render_episode_report_text",
+    "write_episode_report_files",
 ]
