@@ -1,5 +1,8 @@
-"""Client-side engine capture utilities."""
+"""Client-side engine capture and input utilities."""
 
+from RL.engine.client.x11_input import (
+    X11InputController,
+)
 from RL.engine.client.x11_window import (
     X11Window,
     X11WindowCapture,
@@ -7,6 +10,7 @@ from RL.engine.client.x11_window import (
 )
 
 __all__ = [
+    "X11InputController",
     "X11Window",
     "X11WindowCapture",
     "preprocess_rgb_frame",
