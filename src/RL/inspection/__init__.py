@@ -3,6 +3,7 @@
 from RL.inspection.contracts import (
     AgentTransition,
     FrameSnapshot,
+    GoalSnapshot,
     ObservationSnapshot,
     PolicyDecision,
 )
@@ -10,6 +11,7 @@ from RL.inspection.contracts import (
 __all__ = [
     "AgentTransition",
     "FrameSnapshot",
+    "GoalSnapshot",
     "ObservationSnapshot",
     "PolicyDecision",
 ]

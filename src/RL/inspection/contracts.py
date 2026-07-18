@@ -148,6 +148,76 @@ class PolicyDecision:
 
 
 @dataclass(frozen=True)
+class GoalSnapshot:
+    """Inspectable state of the agent's current goal."""
+
+    goal_id: str
+    category: str
+    target: str | None
+    trigger: str
+    progress: float
+    status: str
+    steps_active: int
+    completion_reason: str | None = None
+    failure_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.goal_id:
+            raise ValueError(
+                "goal id must not be empty"
+            )
+
+        if not self.category:
+            raise ValueError(
+                "goal category must not be empty"
+            )
+
+        if not self.trigger:
+            raise ValueError(
+                "goal trigger must not be empty"
+            )
+
+        if not 0.0 <= self.progress <= 1.0:
+            raise ValueError(
+                "goal progress must be between "
+                "zero and one"
+            )
+
+        valid_statuses = {
+            "active",
+            "completed",
+            "failed",
+            "abandoned",
+        }
+
+        if self.status not in valid_statuses:
+            raise ValueError(
+                "goal status must be one of: "
+                + ", ".join(sorted(valid_statuses))
+            )
+
+        if self.steps_active < 0:
+            raise ValueError(
+                "goal steps active must not be negative"
+            )
+
+    def to_record(self) -> dict[str, Any]:
+        """Return a readable JSON-compatible representation."""
+
+        return {
+            "goal_id": self.goal_id,
+            "category": self.category,
+            "target": self.target,
+            "trigger": self.trigger,
+            "progress": float(self.progress),
+            "status": self.status,
+            "steps_active": self.steps_active,
+            "completion_reason": self.completion_reason,
+            "failure_reason": self.failure_reason,
+        }
+
+
+@dataclass(frozen=True)
 class AgentTransition:
     """One inspectable observation-action-reward transition."""
 
@@ -159,6 +229,7 @@ class AgentTransition:
     next_observation: ObservationSnapshot | None
     terminated: bool
     truncated: bool
+    goal: GoalSnapshot | None = None
     reward_components: Mapping[str, float] = field(
         default_factory=dict
     )
@@ -186,6 +257,11 @@ class AgentTransition:
             "observation": self.observation.to_record(),
             "decision": self.decision.to_record(),
             "reward": float(self.reward),
+            "goal": (
+                self.goal.to_record()
+                if self.goal is not None
+                else None
+            ),
             "reward_components": {
                 str(name): float(value)
                 for name, value

@@ -9,6 +9,7 @@ from RL.actions.contracts import (
 from RL.inspection import (
     AgentTransition,
     FrameSnapshot,
+    GoalSnapshot,
     ObservationSnapshot,
     PolicyDecision,
 )
@@ -74,6 +75,15 @@ def test_transition_exposes_what_policy_saw() -> None:
         next_observation=make_observation(18424),
         terminated=False,
         truncated=False,
+        goal=GoalSnapshot(
+            goal_id="engage-opponent-001",
+            category="combat",
+            target="visible-opponent",
+            trigger="opponent_visible",
+            progress=0.61,
+            status="active",
+            steps_active=18,
+        ),
         info={
             "match_index": 9,
             "mode": "kh",
@@ -108,6 +118,16 @@ def test_transition_exposes_what_policy_saw() -> None:
 
     assert record["reward"] == 1.0
     assert record["reward_components"]["combat"] == 1.0
+
+    goal = record["goal"]
+
+    assert goal["goal_id"] == "engage-opponent-001"
+    assert goal["category"] == "combat"
+    assert goal["target"] == "visible-opponent"
+    assert goal["trigger"] == "opponent_visible"
+    assert goal["progress"] == 0.61
+    assert goal["status"] == "active"
+    assert goal["steps_active"] == 18
     assert record["next_observation"]["tick"] == 18424
     assert record["terminated"] is False
 
@@ -145,4 +165,64 @@ def test_transition_rejects_negative_step() -> None:
             next_observation=None,
             terminated=True,
             truncated=False,
+        )
+
+
+
+def test_goal_snapshot_serializes_completion() -> None:
+    goal = GoalSnapshot(
+        goal_id="take-cover-004",
+        category="survival",
+        target="nearest-cover",
+        trigger="health_below_threshold",
+        progress=1.0,
+        status="completed",
+        steps_active=12,
+        completion_reason="line_of_sight_broken",
+    )
+
+    record = goal.to_record()
+
+    assert record == {
+        "goal_id": "take-cover-004",
+        "category": "survival",
+        "target": "nearest-cover",
+        "trigger": "health_below_threshold",
+        "progress": 1.0,
+        "status": "completed",
+        "steps_active": 12,
+        "completion_reason": "line_of_sight_broken",
+        "failure_reason": None,
+    }
+
+
+def test_goal_snapshot_rejects_invalid_progress() -> None:
+    with pytest.raises(
+        ValueError,
+        match="progress",
+    ):
+        GoalSnapshot(
+            goal_id="find-opponent-001",
+            category="search",
+            target=None,
+            trigger="opponent_not_visible",
+            progress=1.25,
+            status="active",
+            steps_active=3,
+        )
+
+
+def test_goal_snapshot_rejects_unknown_status() -> None:
+    with pytest.raises(
+        ValueError,
+        match="status",
+    ):
+        GoalSnapshot(
+            goal_id="find-opponent-001",
+            category="search",
+            target=None,
+            trigger="opponent_not_visible",
+            progress=0.2,
+            status="reward_farming",
+            steps_active=3,
         )
