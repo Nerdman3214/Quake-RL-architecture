@@ -7,11 +7,23 @@ from RL.inspection.contracts import (
     ObservationSnapshot,
     PolicyDecision,
 )
+from RL.inspection.jsonl import (
+    EpisodeEnded,
+    EpisodeStarted,
+    InspectionJSONLReader,
+    InspectionJSONLWriter,
+    InspectionRecord,
+)
 
 __all__ = [
     "AgentTransition",
+    "EpisodeEnded",
+    "EpisodeStarted",
     "FrameSnapshot",
     "GoalSnapshot",
+    "InspectionJSONLReader",
+    "InspectionJSONLWriter",
+    "InspectionRecord",
     "ObservationSnapshot",
     "PolicyDecision",
 ]
