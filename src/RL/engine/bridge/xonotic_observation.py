@@ -29,6 +29,23 @@ class WindowCapture(Protocol):
         """Capture one RGB frame from the game window."""
 
 
+class ActionExecutor(Protocol):
+    """Bounded action operations required by the bridge."""
+
+    def execute(
+        self,
+        window: X11Window,
+        command: ActionCommand,
+    ) -> None:
+        """Execute one action against the game window."""
+
+    def release_all(
+        self,
+        window: X11Window | None = None,
+    ) -> None:
+        """Release any input still marked as held."""
+
+
 class XonoticObservationBridge(EngineBridge):
     """Read Xonotic frames without injecting controls."""
 
@@ -39,6 +56,7 @@ class XonoticObservationBridge(EngineBridge):
         frame_height: int = 90,
         frame_stack: int = 4,
         capture_client: WindowCapture | None = None,
+        action_executor: ActionExecutor | None = None,
     ) -> None:
         if frame_width <= 0:
             raise ValueError(
@@ -65,6 +83,8 @@ class XonoticObservationBridge(EngineBridge):
             else X11WindowCapture()
         )
 
+        self._action_executor = action_executor
+
         self._window: X11Window | None = None
         self._frames: np.ndarray | None = None
         self._next_tick = 0
@@ -74,6 +94,12 @@ class XonoticObservationBridge(EngineBridge):
         """Return whether a game window has been discovered."""
 
         return self._window is not None
+
+    @property
+    def action_available(self) -> bool:
+        """Return whether bounded action execution is configured."""
+
+        return self._action_executor is not None
 
     @property
     def frame_shape(
@@ -121,16 +147,24 @@ class XonoticObservationBridge(EngineBridge):
         self,
         action: ActionCommand,
     ) -> None:
-        """Reject actions until a separate control bridge exists."""
+        """Execute one bounded action when configured."""
 
         if not isinstance(action, ActionCommand):
             raise TypeError(
                 "action must be an ActionCommand"
             )
 
-        raise NotImplementedError(
-            "action injection is not available in the "
-            "read-only observation bridge"
+        if self._action_executor is None:
+            raise NotImplementedError(
+                "action execution is not configured; "
+                "action injection is not available"
+            )
+
+        window = self._require_window()
+
+        self._action_executor.execute(
+            window,
+            action,
         )
 
     def read_observation(self) -> Observation:
@@ -191,8 +225,19 @@ class XonoticObservationBridge(EngineBridge):
         return observation
 
     def close(self) -> None:
-        """Release the window and local observation state."""
+        """Release input, window, and local observation state."""
 
-        self._window = None
-        self._frames = None
-        self._next_tick = 0
+        window = self._window
+
+        try:
+            if (
+                window is not None
+                and self._action_executor is not None
+            ):
+                self._action_executor.release_all(
+                    window
+                )
+        finally:
+            self._window = None
+            self._frames = None
+            self._next_tick = 0

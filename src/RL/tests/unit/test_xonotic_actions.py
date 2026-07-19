@@ -88,6 +88,17 @@ class FakeInputController:
             )
         )
 
+    def release_all(
+        self,
+        window: X11Window | None = None,
+    ) -> None:
+        self.calls.append(
+            (
+                "release_all",
+                window,
+            )
+        )
+
 
 def make_executor(
     controller: FakeInputController,
@@ -363,3 +374,17 @@ def test_rejects_non_discrete_action() -> None:
         )
 
     assert controller.calls == []
+
+
+def test_release_all_delegates_to_input_controller() -> None:
+    controller = FakeInputController()
+    executor = make_executor(controller)
+
+    executor.release_all(WINDOW)
+
+    assert controller.calls == [
+        (
+            "release_all",
+            WINDOW,
+        )
+    ]

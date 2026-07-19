@@ -305,3 +305,122 @@ def test_default_config_uses_native_rgb_shape() -> None:
     assert config.environment.frame_width == 160
     assert config.environment.frame_height == 90
     assert config.environment.frame_stack == 4
+
+
+class FakeActionExecutor:
+    """Record bridge actions and release attempts."""
+
+    def __init__(
+        self,
+        *,
+        fail_release: bool = False,
+    ) -> None:
+        self.calls: list[
+            tuple[X11Window, ActionCommand]
+        ] = []
+
+        self.release_calls: list[
+            X11Window | None
+        ] = []
+
+        self.fail_release = fail_release
+
+    def execute(
+        self,
+        window: X11Window,
+        command: ActionCommand,
+    ) -> None:
+        self.calls.append(
+            (
+                window,
+                command,
+            )
+        )
+
+    def release_all(
+        self,
+        window: X11Window | None = None,
+    ) -> None:
+        self.release_calls.append(window)
+
+        if self.fail_release:
+            raise RuntimeError(
+                "release failed"
+            )
+
+
+def test_configured_send_action_delegates() -> None:
+    capture = FakeCapture(
+        [solid_frame(10)]
+    )
+
+    executor = FakeActionExecutor()
+
+    bridge = XonoticObservationBridge(
+        capture_client=capture,
+        action_executor=executor,
+    )
+
+    command = ActionCommand(
+        action=DiscreteAction.FORWARD,
+        duration_ticks=1,
+    )
+
+    assert bridge.action_available
+
+    bridge.connect()
+    bridge.send_action(command)
+
+    assert executor.calls == [
+        (
+            capture.window,
+            command,
+        )
+    ]
+
+
+def test_close_releases_configured_actions() -> None:
+    capture = FakeCapture(
+        [solid_frame(10)]
+    )
+
+    executor = FakeActionExecutor()
+
+    bridge = XonoticObservationBridge(
+        capture_client=capture,
+        action_executor=executor,
+    )
+
+    bridge.connect()
+    bridge.close()
+
+    assert executor.release_calls == [
+        capture.window
+    ]
+
+    assert not bridge.connected
+
+
+def test_close_clears_state_when_release_fails() -> None:
+    capture = FakeCapture(
+        [solid_frame(10)]
+    )
+
+    executor = FakeActionExecutor(
+        fail_release=True,
+    )
+
+    bridge = XonoticObservationBridge(
+        capture_client=capture,
+        action_executor=executor,
+    )
+
+    bridge.connect()
+
+    with pytest.raises(
+        RuntimeError,
+        match="release failed",
+    ):
+        bridge.close()
+
+    assert not bridge.connected

@@ -52,6 +52,12 @@ class ActionInputController(Protocol):
     ) -> None:
         """Send bounded mouse-wheel steps."""
 
+    def release_all(
+        self,
+        window: X11Window | None = None,
+    ) -> None:
+        """Release any input still marked as held."""
+
 
 class XonoticActionExecutor:
     """Execute one bounded ActionCommand for Xonotic."""
@@ -166,6 +172,14 @@ class XonoticActionExecutor:
             command.duration_ticks
             * self.tick_seconds
         )
+
+    def release_all(
+        self,
+        window: X11Window | None = None,
+    ) -> None:
+        """Release any input still held by the controller."""
+
+        self.input_controller.release_all(window)
 
     def execute(
         self,
