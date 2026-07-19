@@ -2,6 +2,10 @@
 
 from .contracts import RewardLedger, RewardWeights
 from .event_mapper import RewardMapper
+from .priming import (
+    RewardPrimingPlan,
+    build_reward_priming_plan,
+)
 from .mode_profiles import (
     MODE_REWARD_PROFILES,
     ModeRewardProfile,
@@ -13,6 +17,8 @@ __all__ = [
     "ModeRewardProfile",
     "RewardLedger",
     "RewardMapper",
+    "RewardPrimingPlan",
+    "build_reward_priming_plan",
     "RewardWeights",
     "get_mode_reward_profile",
 ]
