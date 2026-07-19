@@ -2,6 +2,10 @@
 
 from .contracts import RewardLedger, RewardWeights
 from .event_mapper import RewardMapper
+from .lifecycle import (
+    EventLifecycleGate,
+    EventStepOutcome,
+)
 from .priming import (
     RewardPrimingPlan,
     build_reward_priming_plan,
@@ -13,6 +17,8 @@ from .mode_profiles import (
 )
 
 __all__ = [
+    "EventLifecycleGate",
+    "EventStepOutcome",
     "MODE_REWARD_PROFILES",
     "ModeRewardProfile",
     "RewardLedger",
