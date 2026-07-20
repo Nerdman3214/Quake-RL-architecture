@@ -1,6 +1,11 @@
 """Reinforcement-learning and imitation-learning utilities."""
 
 from RL.training.ppo import (
+    DeathAwarePPOConfig,
+    DeathAwarePPOResult,
+    DeathAwareRolloutResult,
+    run_death_aware_ppo_step,
+    collect_death_aware_rollout,
     PPO_ACTION_COUNT,
     PPO_CHECKPOINT_FORMAT_VERSION,
     PPO_FRAME_SHAPE,
@@ -31,6 +36,11 @@ from RL.training.ppo import (
 )
 
 __all__ = [
+    "run_death_aware_ppo_step",
+    "collect_death_aware_rollout",
+    "DeathAwareRolloutResult",
+    "DeathAwarePPOResult",
+    "DeathAwarePPOConfig",
     "PPO_ACTION_COUNT",
     "PPO_CHECKPOINT_FORMAT_VERSION",
     "PPO_FRAME_SHAPE",
