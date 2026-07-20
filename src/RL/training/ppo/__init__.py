@@ -1,27 +1,31 @@
-"""Reinforcement-learning and imitation-learning utilities."""
+"""Proximal Policy Optimization contracts and utilities."""
 
-from RL.training.ppo import (
-    PPO_ACTION_COUNT,
+from RL.training.ppo.checkpoint import (
     PPO_CHECKPOINT_FORMAT_VERSION,
-    PPO_FRAME_SHAPE,
+    LoadedPPOTrainingCheckpoint,
+    PPOTrainingProgress,
+    load_ppo_training_checkpoint,
+    restore_ppo_checkpoint_rng_state,
+    save_ppo_training_checkpoint,
+)
+from RL.training.ppo.collector import (
     CollectedRolloutResult,
     CollectedRolloutTransition,
-    LoadedPPOTrainingCheckpoint,
+    collect_bounded_rollout,
+)
+from RL.training.ppo.core import (
+    PPO_ACTION_COUNT,
+    PPO_FRAME_SHAPE,
     PPOBatchResult,
     PPOHyperparameters,
     PPOLossTensors,
     PPOMetrics,
     PPORolloutBatch,
     PPOTrainer,
-    PPOTrainingProgress,
     RolloutBuffer,
     RolloutTransition,
-    collect_bounded_rollout,
     compute_gae,
-    load_ppo_training_checkpoint,
     ppo_loss,
-    restore_ppo_checkpoint_rng_state,
-    save_ppo_training_checkpoint,
 )
 
 __all__ = [

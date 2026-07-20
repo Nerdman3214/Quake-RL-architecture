@@ -21,6 +21,12 @@ from RL.inspection.report import (
     write_episode_report_files,
 )
 
+from RL.inspection.neural_episode import (
+    InspectedNeuralEpisodeResult,
+    NeuralEpisodeInspectionRecorder,
+    run_inspected_neural_episode,
+)
+
 __all__ = [
     "AgentTransition",
     "EpisodeEnded",
@@ -36,4 +42,8 @@ __all__ = [
     "build_episode_report",
     "render_episode_report_text",
     "write_episode_report_files",
+    "InspectedNeuralEpisodeResult",
+    "NeuralEpisodeInspectionRecorder",
+    "run_inspected_neural_episode",
+
 ]

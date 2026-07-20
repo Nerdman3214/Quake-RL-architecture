@@ -254,6 +254,7 @@ class XonoticActionExecutor:
                 delta_x=delta_x,
                 delta_y=0,
             )
+            self.sleeper(duration_seconds)
             return
 
         if action in (
@@ -277,6 +278,7 @@ class XonoticActionExecutor:
                 window,
                 steps=steps,
             )
+            self.sleeper(duration_seconds)
             return
 
         raise ValueError(
