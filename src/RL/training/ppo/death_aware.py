@@ -411,6 +411,20 @@ def _alive(
     )
 
 
+def _authoritative_death_signal(
+    info: Mapping[str, Any],
+) -> bool:
+    return bool(
+        (_event_types(info) & _DEATH_EVENTS)
+        or _truthy_flag(
+            info,
+            "controlled_player_died",
+            "controlled_player_death",
+            "player_died",
+        )
+    )
+
+
 def _death_detected(
     observation: Observation,
     next_observation: Observation,
@@ -499,6 +513,8 @@ class DeathAwarePPOConfig:
 
     max_steps: int
     max_respawn_wait_steps: int = 80
+    death_confirmation_steps: int = 20
+    respawn_fire_interval_steps: int = 8
     updates_per_signal: int = 1
     gamma: float = 0.99
     gae_lambda: float = 0.95
@@ -527,6 +543,28 @@ class DeathAwarePPOConfig:
                 self.max_respawn_wait_steps,
                 field_name=(
                     "max_respawn_wait_steps"
+                ),
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "death_confirmation_steps",
+            _nonnegative_integer(
+                self.death_confirmation_steps,
+                field_name=(
+                    "death_confirmation_steps"
+                ),
+            ),
+        )
+
+        object.__setattr__(
+            self,
+            "respawn_fire_interval_steps",
+            _positive_integer(
+                self.respawn_fire_interval_steps,
+                field_name=(
+                    "respawn_fire_interval_steps"
                 ),
             ),
         )
@@ -664,6 +702,10 @@ class DeathAwareRolloutResult:
     ]
     batch: PPORolloutBatch
     total_reward: float
+    death_event_confirmed: bool
+    death_reward_confirmed: bool
+    death_confirmation_steps: int
+    confirmed_death_reward: float
     meaningful_signal: bool
     signal_reason: str
     death_detected: bool
@@ -673,6 +715,7 @@ class DeathAwareRolloutResult:
     bootstrap_value: float
     respawn_detected: bool
     respawn_wait_steps: int
+    respawn_fire_actions: int
     post_respawn_observation: Observation | None
 
     def __post_init__(self) -> None:
@@ -712,12 +755,19 @@ class DeathAwareRolloutResult:
         )
 
         _finite_number(
+            self.confirmed_death_reward,
+            field_name="confirmed_death_reward",
+        )
+
+        _finite_number(
             self.bootstrap_value,
             field_name="bootstrap_value",
         )
 
         for field_name in (
             "meaningful_signal",
+            "death_event_confirmed",
+            "death_reward_confirmed",
             "death_detected",
             "environment_terminated",
             "environment_truncated",
@@ -744,8 +794,18 @@ class DeathAwareRolloutResult:
             )
 
         _nonnegative_integer(
+            self.death_confirmation_steps,
+            field_name="death_confirmation_steps",
+        )
+
+        _nonnegative_integer(
             self.respawn_wait_steps,
             field_name="respawn_wait_steps",
+        )
+
+        _nonnegative_integer(
+            self.respawn_fire_actions,
+            field_name="respawn_fire_actions",
         )
 
         if (
@@ -821,12 +881,19 @@ def _meaningful_signal(
     reward: float,
     info: Mapping[str, Any],
     death_detected: bool,
+    death_reward_confirmed: bool,
     terminated: bool,
     truncated: bool,
     epsilon: float,
 ) -> tuple[bool, str]:
     if death_detected:
-        return True, "death_detected"
+        if death_reward_confirmed:
+            return True, "death_detected"
+
+        return (
+            False,
+            "unconfirmed_death_zero_reward",
+        )
 
     if abs(reward) > epsilon:
         return True, "reward_signal"
@@ -846,23 +913,30 @@ def _meaningful_signal(
     return False, "zero_signal"
 
 
-def _wait_for_respawn(
+def _confirm_death_reward(
     environment: Environment,
     observation: Observation,
     *,
-    max_wait_steps: int,
+    max_steps: int,
+    death_reward_threshold: float,
 ) -> tuple[
-    bool,
+    float,
     int,
-    Observation | None,
+    Observation,
+    bool,
+    bool,
+    bool,
 ]:
-    if _alive(observation) is True:
-        return True, 0, observation
+    """Poll delayed event rewards without adding PPO actions."""
 
     current = observation
+    steps_taken = 0
+    event_confirmed = False
+    terminated = False
+    truncated = False
 
-    for wait_index in range(
-        max_wait_steps
+    for confirmation_index in range(
+        max_steps
     ):
         result = _validate_step_result(
             environment.step(
@@ -875,6 +949,107 @@ def _wait_for_respawn(
             )
         )
 
+        steps_taken = (
+            confirmation_index + 1
+        )
+
+        current = result.observation
+
+        reward = float(
+            result.reward
+        )
+
+        event_confirmed = bool(
+            event_confirmed
+            or _authoritative_death_signal(
+                result.info
+            )
+        )
+
+        terminated = bool(
+            result.terminated
+        )
+
+        truncated = bool(
+            result.truncated
+        )
+
+        if (
+            reward
+            <= death_reward_threshold
+        ):
+            return (
+                reward,
+                steps_taken,
+                current,
+                event_confirmed,
+                terminated,
+                truncated,
+            )
+
+        if terminated or truncated:
+            break
+
+    return (
+        0.0,
+        steps_taken,
+        current,
+        event_confirmed,
+        terminated,
+        truncated,
+    )
+
+
+def _wait_for_respawn(
+    environment: Environment,
+    observation: Observation,
+    *,
+    max_wait_steps: int,
+    fire_interval_steps: int,
+) -> tuple[
+    bool,
+    int,
+    Observation | None,
+    int,
+]:
+    """Wait outside the PPO trajectory and pulse FIRE."""
+
+    if _alive(observation) is True:
+        return True, 0, observation, 0
+
+    current = observation
+    steps_taken = 0
+    fire_actions = 0
+
+    for wait_index in range(
+        max_wait_steps
+    ):
+        use_fire = (
+            wait_index
+            % fire_interval_steps
+            == 0
+        )
+
+        action = (
+            DiscreteAction.FIRE
+            if use_fire
+            else DiscreteAction.NO_OP
+        )
+
+        if use_fire:
+            fire_actions += 1
+
+        result = _validate_step_result(
+            environment.step(
+                ActionCommand(
+                    action=action,
+                    duration_ticks=1,
+                )
+            )
+        )
+
+        steps_taken = wait_index + 1
+
         next_observation = (
             result.observation
         )
@@ -886,13 +1061,12 @@ def _wait_for_respawn(
         ):
             return (
                 True,
-                wait_index + 1,
+                steps_taken,
                 next_observation,
+                fire_actions,
             )
 
-        current = (
-            next_observation
-        )
+        current = next_observation
 
         if (
             result.terminated
@@ -902,8 +1076,9 @@ def _wait_for_respawn(
 
     return (
         False,
-        max_wait_steps,
+        steps_taken,
         None,
+        fire_actions,
     )
 
 
@@ -950,12 +1125,20 @@ def collect_death_aware_rollout(
     meaningful_signal = False
     signal_reason = "zero_signal"
     death_found = False
+    death_event_confirmed = False
+    death_reward_confirmed = False
+    death_confirmation_steps = 0
+    confirmed_death_reward = 0.0
+    respawn_start_observation: (
+        Observation | None
+    ) = None
     environment_terminated = False
     environment_truncated = False
     hard_limit_reached = False
     bootstrap_value = 0.0
     respawn_found = False
     respawn_wait_steps = 0
+    respawn_fire_actions = 0
     post_respawn_observation: (
         Observation | None
     ) = None
@@ -1044,6 +1227,89 @@ def collect_death_aware_rollout(
                 )
             )
 
+            step_environment_terminated = bool(
+                result.terminated
+            )
+
+            step_environment_truncated = bool(
+                result.truncated
+            )
+
+            step_death_event_confirmed = (
+                _authoritative_death_signal(
+                    result.info
+                )
+            )
+
+            confirmation_observation = (
+                next_observation
+            )
+
+            if (
+                death_on_step
+                and reward
+                > config.death_reward_threshold
+                and config.death_confirmation_steps
+                > 0
+            ):
+                (
+                    delayed_reward,
+                    delayed_steps,
+                    confirmation_observation,
+                    delayed_event_confirmed,
+                    delayed_terminated,
+                    delayed_truncated,
+                ) = _confirm_death_reward(
+                    environment,
+                    next_observation,
+                    max_steps=(
+                        config.death_confirmation_steps
+                    ),
+                    death_reward_threshold=(
+                        config.death_reward_threshold
+                    ),
+                )
+
+                reward += delayed_reward
+
+                death_confirmation_steps += (
+                    delayed_steps
+                )
+
+                step_death_event_confirmed = bool(
+                    step_death_event_confirmed
+                    or delayed_event_confirmed
+                )
+
+                step_environment_terminated = bool(
+                    step_environment_terminated
+                    or delayed_terminated
+                )
+
+                step_environment_truncated = bool(
+                    step_environment_truncated
+                    or delayed_truncated
+                )
+
+            if death_on_step:
+                death_event_confirmed = bool(
+                    step_death_event_confirmed
+                )
+
+                death_reward_confirmed = bool(
+                    reward
+                    <= config.death_reward_threshold
+                )
+
+                if death_reward_confirmed:
+                    confirmed_death_reward = (
+                        reward
+                    )
+
+                respawn_start_observation = (
+                    confirmation_observation
+                )
+
             (
                 step_has_signal,
                 step_signal_reason,
@@ -1053,11 +1319,14 @@ def collect_death_aware_rollout(
                 death_detected=(
                     death_on_step
                 ),
+                death_reward_confirmed=(
+                    death_reward_confirmed
+                ),
                 terminated=(
-                    result.terminated
+                    step_environment_terminated
                 ),
                 truncated=(
-                    result.truncated
+                    step_environment_truncated
                 ),
                 epsilon=(
                     config.signal_reward_epsilon
@@ -1065,12 +1334,12 @@ def collect_death_aware_rollout(
             )
 
             segment_terminated = bool(
-                result.terminated
+                step_environment_terminated
                 or death_on_step
             )
 
             segment_truncated = bool(
-                result.truncated
+                step_environment_truncated
                 and not segment_terminated
             )
 
@@ -1136,8 +1405,10 @@ def collect_death_aware_rollout(
                 next_observation
             )
 
-            if step_has_signal:
-                meaningful_signal = True
+            if death_on_step or step_has_signal:
+                meaningful_signal = (
+                    step_has_signal
+                )
                 signal_reason = (
                     step_signal_reason
                 )
@@ -1145,10 +1416,10 @@ def collect_death_aware_rollout(
                     death_on_step
                 )
                 environment_terminated = (
-                    result.terminated
+                    step_environment_terminated
                 )
                 environment_truncated = (
-                    result.truncated
+                    step_environment_truncated
                 )
                 break
 
@@ -1203,11 +1474,20 @@ def collect_death_aware_rollout(
                 respawn_found,
                 respawn_wait_steps,
                 post_respawn_observation,
+                respawn_fire_actions,
             ) = _wait_for_respawn(
                 environment,
-                final_observation,
+                (
+                    respawn_start_observation
+                    if respawn_start_observation
+                    is not None
+                    else final_observation
+                ),
                 max_wait_steps=(
                     config.max_respawn_wait_steps
+                ),
+                fire_interval_steps=(
+                    config.respawn_fire_interval_steps
                 ),
             )
 
@@ -1221,6 +1501,18 @@ def collect_death_aware_rollout(
             ),
             batch=batch,
             total_reward=total_reward,
+            death_event_confirmed=(
+                death_event_confirmed
+            ),
+            death_reward_confirmed=(
+                death_reward_confirmed
+            ),
+            death_confirmation_steps=(
+                death_confirmation_steps
+            ),
+            confirmed_death_reward=(
+                confirmed_death_reward
+            ),
             meaningful_signal=(
                 meaningful_signal
             ),
@@ -1243,6 +1535,9 @@ def collect_death_aware_rollout(
             ),
             respawn_wait_steps=(
                 respawn_wait_steps
+            ),
+            respawn_fire_actions=(
+                respawn_fire_actions
             ),
             post_respawn_observation=(
                 post_respawn_observation

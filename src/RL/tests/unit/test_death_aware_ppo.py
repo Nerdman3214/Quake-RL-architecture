@@ -655,3 +655,165 @@ def test_nested_event_record_can_trigger_signal() -> None:
     )
 
     assert result.update_performed
+
+def test_delayed_death_reward_is_attached_to_terminal_action() -> None:
+    torch.manual_seed(2201)
+
+    model, agent, trainer = (
+        make_components()
+    )
+
+    environment = SequenceEnvironment(
+        [
+            step_result(
+                1,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                2,
+                reward=-1.0,
+                alive=False,
+                event_types=(
+                    "player_kill",
+                ),
+            ),
+            step_result(
+                3,
+                alive=True,
+                event_types=(
+                    "player_now_playing",
+                ),
+            ),
+        ]
+    )
+
+    before = parameter_copy(
+        model
+    )
+
+    result = run_death_aware_ppo_step(
+        environment,
+        agent,
+        trainer,
+        DeathAwarePPOConfig(
+            max_steps=8,
+            max_respawn_wait_steps=4,
+            death_confirmation_steps=3,
+            respawn_fire_interval_steps=1,
+        ),
+    )
+
+    assert result.rollout.steps == 1
+    assert result.rollout.death_detected
+    assert result.rollout.death_reward_confirmed
+    assert (
+        result.rollout
+        .death_confirmation_steps
+        == 1
+    )
+    assert (
+        result.rollout
+        .confirmed_death_reward
+        == pytest.approx(-1.0)
+    )
+    assert (
+        result.rollout.total_reward
+        == pytest.approx(-1.0)
+    )
+    assert (
+        result.rollout.batch.rewards.tolist()
+        == pytest.approx([-1.0])
+    )
+
+    assert result.rollout.respawn_detected
+    assert result.rollout.respawn_wait_steps == 1
+    assert result.rollout.respawn_fire_actions == 1
+    assert (
+        environment.actions[-1]
+        .action.name
+        == "FIRE"
+    )
+
+    assert result.update_performed
+    assert trainer.optimizer_step_count == 1
+    assert parameters_changed(
+        before,
+        model,
+    )
+    assert environment.closed
+
+
+def test_unconfirmed_zero_reward_death_skips_update() -> None:
+    model, agent, trainer = (
+        make_components()
+    )
+
+    environment = SequenceEnvironment(
+        [
+            step_result(
+                1,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                2,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                3,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                4,
+                reward=0.0,
+                alive=True,
+            ),
+        ]
+    )
+
+    before = parameter_copy(
+        model
+    )
+
+    result = run_death_aware_ppo_step(
+        environment,
+        agent,
+        trainer,
+        DeathAwarePPOConfig(
+            max_steps=8,
+            max_respawn_wait_steps=2,
+            death_confirmation_steps=2,
+            respawn_fire_interval_steps=1,
+        ),
+    )
+
+    assert result.rollout.steps == 1
+    assert result.rollout.death_detected
+    assert not result.rollout.death_reward_confirmed
+    assert (
+        result.rollout.signal_reason
+        == "unconfirmed_death_zero_reward"
+    )
+    assert not result.rollout.meaningful_signal
+    assert (
+        result.rollout.death_confirmation_steps
+        == 2
+    )
+
+    assert result.rollout.respawn_detected
+    assert result.rollout.respawn_fire_actions == 1
+
+    assert not result.update_performed
+    assert (
+        result.update_skipped_reason
+        == "zero_signal_segment"
+    )
+    assert trainer.optimizer_step_count == 0
+    assert not parameters_changed(
+        before,
+        model,
+    )
+    assert environment.closed
