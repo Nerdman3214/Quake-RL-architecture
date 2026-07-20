@@ -27,6 +27,14 @@ from RL.training.ppo.core import (
     compute_gae,
     ppo_loss,
 )
+from RL.training.ppo.session import (
+    EnvironmentFactory,
+    PPORolloutAudit,
+    PPOTrainingSessionConfig,
+    PPOTrainingSessionResult,
+    PPOUpdateAudit,
+    run_bounded_ppo_training_session,
+)
 
 __all__ = [
     "PPO_ACTION_COUNT",
@@ -34,14 +42,19 @@ __all__ = [
     "PPO_FRAME_SHAPE",
     "CollectedRolloutResult",
     "CollectedRolloutTransition",
+    "EnvironmentFactory",
     "LoadedPPOTrainingCheckpoint",
     "PPOBatchResult",
     "PPOHyperparameters",
     "PPOLossTensors",
     "PPOMetrics",
+    "PPORolloutAudit",
     "PPORolloutBatch",
     "PPOTrainer",
     "PPOTrainingProgress",
+    "PPOTrainingSessionConfig",
+    "PPOTrainingSessionResult",
+    "PPOUpdateAudit",
     "RolloutBuffer",
     "RolloutTransition",
     "collect_bounded_rollout",
@@ -49,5 +62,6 @@ __all__ = [
     "load_ppo_training_checkpoint",
     "ppo_loss",
     "restore_ppo_checkpoint_rng_state",
+    "run_bounded_ppo_training_session",
     "save_ppo_training_checkpoint",
 ]
