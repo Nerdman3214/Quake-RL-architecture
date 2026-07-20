@@ -714,8 +714,11 @@ class DeathAwareRolloutResult:
     hard_limit_reached: bool
     bootstrap_value: float
     respawn_detected: bool
+    respawn_inferred: bool
+    respawn_signal_reason: str | None
     respawn_wait_steps: int
     respawn_fire_actions: int
+    post_respawn_reward: float
     post_respawn_observation: Observation | None
 
     def __post_init__(self) -> None:
@@ -760,6 +763,11 @@ class DeathAwareRolloutResult:
         )
 
         _finite_number(
+            self.post_respawn_reward,
+            field_name="post_respawn_reward",
+        )
+
+        _finite_number(
             self.bootstrap_value,
             field_name="bootstrap_value",
         )
@@ -773,6 +781,7 @@ class DeathAwareRolloutResult:
             "environment_truncated",
             "hard_limit_reached",
             "respawn_detected",
+            "respawn_inferred",
         ):
             if not isinstance(
                 getattr(self, field_name),
@@ -807,6 +816,41 @@ class DeathAwareRolloutResult:
             self.respawn_fire_actions,
             field_name="respawn_fire_actions",
         )
+
+        if (
+            self.respawn_signal_reason
+            is not None
+            and not isinstance(
+                self.respawn_signal_reason,
+                str,
+            )
+        ):
+            raise TypeError(
+                "respawn_signal_reason must "
+                "be a string or None"
+            )
+
+        if (
+            self.respawn_detected
+            and self.respawn_inferred
+        ):
+            raise ValueError(
+                "respawn cannot be both directly "
+                "detected and inferred"
+            )
+
+        if (
+            (
+                self.respawn_detected
+                or self.respawn_inferred
+            )
+            and self.respawn_signal_reason
+            is None
+        ):
+            raise ValueError(
+                "a detected or inferred respawn "
+                "requires respawn_signal_reason"
+            )
 
         if (
             self.post_respawn_observation
@@ -1006,16 +1050,38 @@ def _wait_for_respawn(
     *,
     max_wait_steps: int,
     fire_interval_steps: int,
+    infer_from_second_death: bool,
+    death_reward_threshold: float,
 ) -> tuple[
     bool,
+    bool,
+    str | None,
     int,
     Observation | None,
     int,
+    float,
 ]:
-    """Wait outside the PPO trajectory and pulse FIRE."""
+    """Wait outside PPO data and identify respawn evidence.
+
+    Direct telemetry or event evidence is preferred. When the
+    environment has no player telemetry and emits no normal respawn
+    event, a later controlled-player death proves that a respawn
+    occurred between the two deaths.
+
+    Every action and reward processed here remains outside the PPO
+    rollout that ended at the first death.
+    """
 
     if _alive(observation) is True:
-        return True, 0, observation, 0
+        return (
+            True,
+            False,
+            "telemetry_alive_after_death",
+            0,
+            observation,
+            0,
+            0.0,
+        )
 
     current = observation
     steps_taken = 0
@@ -1054,6 +1120,10 @@ def _wait_for_respawn(
             result.observation
         )
 
+        reward = float(
+            result.reward
+        )
+
         if _respawn_detected(
             current,
             next_observation,
@@ -1061,9 +1131,37 @@ def _wait_for_respawn(
         ):
             return (
                 True,
+                False,
+                "direct_respawn_signal",
                 steps_taken,
                 next_observation,
                 fire_actions,
+                reward,
+            )
+
+        if reward <= death_reward_threshold:
+            if infer_from_second_death:
+                return (
+                    False,
+                    True,
+                    "second_death_proves_respawn",
+                    steps_taken,
+                    next_observation,
+                    fire_actions,
+                    reward,
+                )
+
+            return (
+                False,
+                False,
+                (
+                    "late_death_reward_without_"
+                    "confirmed_first_death"
+                ),
+                steps_taken,
+                next_observation,
+                fire_actions,
+                reward,
             )
 
         current = next_observation
@@ -1076,9 +1174,12 @@ def _wait_for_respawn(
 
     return (
         False,
+        False,
+        "respawn_not_observed",
         steps_taken,
         None,
         fire_actions,
+        0.0,
     )
 
 
@@ -1137,8 +1238,11 @@ def collect_death_aware_rollout(
     hard_limit_reached = False
     bootstrap_value = 0.0
     respawn_found = False
+    respawn_inferred = False
+    respawn_signal_reason: str | None = None
     respawn_wait_steps = 0
     respawn_fire_actions = 0
+    post_respawn_reward = 0.0
     post_respawn_observation: (
         Observation | None
     ) = None
@@ -1472,9 +1576,12 @@ def collect_death_aware_rollout(
         ):
             (
                 respawn_found,
+                respawn_inferred,
+                respawn_signal_reason,
                 respawn_wait_steps,
                 post_respawn_observation,
                 respawn_fire_actions,
+                post_respawn_reward,
             ) = _wait_for_respawn(
                 environment,
                 (
@@ -1488,6 +1595,12 @@ def collect_death_aware_rollout(
                 ),
                 fire_interval_steps=(
                     config.respawn_fire_interval_steps
+                ),
+                infer_from_second_death=(
+                    death_reward_confirmed
+                ),
+                death_reward_threshold=(
+                    config.death_reward_threshold
                 ),
             )
 
@@ -1533,11 +1646,20 @@ def collect_death_aware_rollout(
             respawn_detected=(
                 respawn_found
             ),
+            respawn_inferred=(
+                respawn_inferred
+            ),
+            respawn_signal_reason=(
+                respawn_signal_reason
+            ),
             respawn_wait_steps=(
                 respawn_wait_steps
             ),
             respawn_fire_actions=(
                 respawn_fire_actions
+            ),
+            post_respawn_reward=(
+                post_respawn_reward
             ),
             post_respawn_observation=(
                 post_respawn_observation

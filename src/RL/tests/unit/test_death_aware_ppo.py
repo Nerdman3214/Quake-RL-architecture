@@ -817,3 +817,176 @@ def test_unconfirmed_zero_reward_death_skips_update() -> None:
         model,
     )
     assert environment.closed
+
+def test_second_death_infers_respawn_without_entering_first_rollout() -> None:
+    torch.manual_seed(3301)
+
+    model, agent, trainer = (
+        make_components()
+    )
+
+    environment = SequenceEnvironment(
+        [
+            step_result(
+                1,
+                reward=-1.0,
+                alive=False,
+                event_types=(
+                    "player_kill",
+                ),
+            ),
+            step_result(
+                2,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                3,
+                reward=-1.0,
+                alive=False,
+                event_types=(
+                    "player_kill",
+                ),
+            ),
+        ]
+    )
+
+    before = parameter_copy(
+        model
+    )
+
+    result = run_death_aware_ppo_step(
+        environment,
+        agent,
+        trainer,
+        DeathAwarePPOConfig(
+            max_steps=8,
+            max_respawn_wait_steps=4,
+            respawn_fire_interval_steps=8,
+        ),
+    )
+
+    assert result.rollout.steps == 1
+    assert result.rollout.death_detected
+    assert result.rollout.death_reward_confirmed
+
+    assert not result.rollout.respawn_detected
+    assert result.rollout.respawn_inferred
+    assert (
+        result.rollout.respawn_signal_reason
+        == "second_death_proves_respawn"
+    )
+
+    assert result.rollout.respawn_wait_steps == 2
+    assert result.rollout.respawn_fire_actions == 1
+    assert (
+        result.rollout.post_respawn_reward
+        == pytest.approx(-1.0)
+    )
+
+    assert (
+        result.rollout.post_respawn_observation
+        is not None
+    )
+    assert (
+        result.rollout
+        .post_respawn_observation
+        .tick
+        == 3
+    )
+
+    # The second death proves respawn, but it must not be placed in
+    # the first death's on-policy PPO trajectory.
+    assert result.rollout.total_reward == (
+        pytest.approx(-1.0)
+    )
+    assert (
+        result.rollout.batch.rewards.tolist()
+        == pytest.approx([-1.0])
+    )
+    assert (
+        result.rollout.batch.rewards.numel()
+        == 1
+    )
+
+    assert environment.step_calls == 3
+    assert result.update_performed
+    assert result.optimizer_operations == 1
+    assert trainer.optimizer_step_count == 1
+    assert parameters_changed(
+        before,
+        model,
+    )
+    assert environment.closed
+
+
+def test_late_first_death_penalty_is_not_mislabeled_as_respawn() -> None:
+    model, agent, trainer = (
+        make_components()
+    )
+
+    environment = SequenceEnvironment(
+        [
+            step_result(
+                1,
+                reward=0.0,
+                alive=False,
+            ),
+            step_result(
+                2,
+                reward=-1.0,
+                alive=False,
+                event_types=(
+                    "player_kill",
+                ),
+            ),
+        ]
+    )
+
+    before = parameter_copy(
+        model
+    )
+
+    result = run_death_aware_ppo_step(
+        environment,
+        agent,
+        trainer,
+        DeathAwarePPOConfig(
+            max_steps=4,
+            max_respawn_wait_steps=2,
+            death_confirmation_steps=0,
+            respawn_fire_interval_steps=1,
+        ),
+    )
+
+    assert result.rollout.steps == 1
+    assert result.rollout.death_detected
+    assert not result.rollout.death_reward_confirmed
+    assert not result.rollout.meaningful_signal
+
+    assert not result.rollout.respawn_detected
+    assert not result.rollout.respawn_inferred
+    assert (
+        result.rollout.respawn_signal_reason
+        == (
+            "late_death_reward_without_"
+            "confirmed_first_death"
+        )
+    )
+    assert (
+        result.rollout.post_respawn_reward
+        == pytest.approx(-1.0)
+    )
+
+    assert not result.update_performed
+    assert result.optimizer_operations == 0
+    assert (
+        result.update_skipped_reason
+        == "zero_signal_segment"
+    )
+    assert trainer.optimizer_step_count == 0
+    assert not parameters_changed(
+        before,
+        model,
+    )
+    assert environment.closed
