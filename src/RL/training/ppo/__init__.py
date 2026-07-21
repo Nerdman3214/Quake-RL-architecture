@@ -20,6 +20,14 @@ from RL.training.ppo.death_aware import (
     collect_death_aware_rollout,
     run_death_aware_ppo_step,
 )
+from RL.training.ppo.death_aware_session import (
+    DeathAwareAgentFactory,
+    DeathAwareEnvironmentFactory,
+    DeathAwarePPOAttemptAudit,
+    DeathAwarePPOTrainingSessionConfig,
+    DeathAwarePPOTrainingSessionResult,
+    run_bounded_death_aware_ppo_session,
+)
 from RL.training.ppo.core import (
     PPO_ACTION_COUNT,
     PPO_FRAME_SHAPE,
@@ -45,10 +53,16 @@ from RL.training.ppo.session import (
 
 __all__ = [
     "run_death_aware_ppo_step",
+    "run_bounded_death_aware_ppo_session",
     "collect_death_aware_rollout",
     "DeathAwareRolloutResult",
     "DeathAwarePPOResult",
     "DeathAwarePPOConfig",
+    "DeathAwareAgentFactory",
+    "DeathAwareEnvironmentFactory",
+    "DeathAwarePPOAttemptAudit",
+    "DeathAwarePPOTrainingSessionConfig",
+    "DeathAwarePPOTrainingSessionResult",
     "PPO_ACTION_COUNT",
     "PPO_CHECKPOINT_FORMAT_VERSION",
     "PPO_FRAME_SHAPE",
