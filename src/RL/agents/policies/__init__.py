@@ -13,6 +13,11 @@ from RL.agents.policies.checkpoint import (
     load_visual_policy_checkpoint,
     save_visual_policy_checkpoint,
 )
+from RL.agents.policies.hierarchical_recurrent import (
+    HierarchicalPolicyOutput,
+    HierarchicalRecurrentPolicy,
+    TacticalIntent,
+)
 from RL.agents.policies.neural_policy import (
     NeuralPolicyAgent,
 )
@@ -21,6 +26,9 @@ from RL.agents.policies.visual_network import (
 )
 
 __all__ = [
+    "TacticalIntent",
+    "HierarchicalRecurrentPolicy",
+    "HierarchicalPolicyOutput",
     "CHECKPOINT_FORMAT_VERSION",
     "ActorCriticActionBatch",
     "ActorCriticPolicyAgent",

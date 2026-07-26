@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -31,7 +32,12 @@ class X11Window:
 
 
 class X11WindowCapture:
-    """Capture a visible window directly through X11."""
+    """Capture a visible X11 window as an RGB array."""
+
+    _SUPPORTED_BACKENDS = {
+        "mss",
+        "imagemagick",
+    }
 
     def __init__(
         self,
@@ -39,15 +45,35 @@ class X11WindowCapture:
         window_name_pattern: str = "^Xonotic$",
         xdotool_command: str = "xdotool",
         import_command: str = "import",
+        backend: str = "mss",
+        mss_factory: (
+            Callable[[], object] | None
+        ) = None,
     ) -> None:
         if not window_name_pattern:
             raise ValueError(
                 "window name pattern must not be empty"
             )
 
+        if backend not in self._SUPPORTED_BACKENDS:
+            raise ValueError(
+                "capture backend must be one of: "
+                + ", ".join(
+                    sorted(self._SUPPORTED_BACKENDS)
+                )
+            )
+
         self.window_name_pattern = window_name_pattern
         self.xdotool_command = xdotool_command
         self.import_command = import_command
+        self.backend = backend
+        self.mss_factory = mss_factory
+
+        self._mss_capture: object | None = None
+        self._window_monitors: dict[
+            int,
+            dict[str, int],
+        ] = {}
 
     @staticmethod
     def _command_error(
@@ -146,17 +172,189 @@ class X11WindowCapture:
             title=title,
         )
 
-    def capture_rgb(
+    def _window_monitor(
+        self,
+        window: X11Window,
+    ) -> dict[str, int]:
+        cached = self._window_monitors.get(
+            window.window_id
+        )
+
+        if cached is not None:
+            return cached
+
+        output = self._run_text(
+            [
+                self.xdotool_command,
+                "getwindowgeometry",
+                "--shell",
+                str(window.window_id),
+            ]
+        )
+
+        geometry: dict[str, int] = {}
+
+        for line in output.splitlines():
+            if "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+
+            if key not in {
+                "X",
+                "Y",
+                "WIDTH",
+                "HEIGHT",
+            }:
+                continue
+
+            try:
+                geometry[key] = int(value)
+            except ValueError as error:
+                raise RuntimeError(
+                    "xdotool returned invalid window "
+                    f"geometry: {line!r}"
+                ) from error
+
+        required = {
+            "X",
+            "Y",
+            "WIDTH",
+            "HEIGHT",
+        }
+
+        if not required.issubset(geometry):
+            raise RuntimeError(
+                "xdotool returned incomplete window "
+                f"geometry: {geometry}"
+            )
+
+        if (
+            geometry["WIDTH"] <= 0
+            or geometry["HEIGHT"] <= 0
+        ):
+            raise RuntimeError(
+                "xdotool returned nonpositive window "
+                "dimensions"
+            )
+
+        monitor = {
+            "left": geometry["X"],
+            "top": geometry["Y"],
+            "width": geometry["WIDTH"],
+            "height": geometry["HEIGHT"],
+        }
+
+        self._window_monitors[
+            window.window_id
+        ] = monitor
+
+        return monitor
+
+    def _create_mss_capture(self) -> object:
+        factory = self.mss_factory
+
+        if factory is None:
+            try:
+                from mss import mss
+            except ModuleNotFoundError as error:
+                raise RuntimeError(
+                    "required Python package is "
+                    "unavailable: mss"
+                ) from error
+
+            factory = mss
+
+        try:
+            capture = factory()
+        except Exception as error:
+            raise RuntimeError(
+                "failed to initialize MSS capture"
+            ) from error
+
+        if not callable(
+            getattr(
+                capture,
+                "grab",
+                None,
+            )
+        ):
+            close = getattr(
+                capture,
+                "close",
+                None,
+            )
+
+            if callable(close):
+                close()
+
+            raise RuntimeError(
+                "MSS capture backend does not "
+                "provide grab()"
+            )
+
+        return capture
+
+    def _require_mss_capture(self) -> object:
+        if self._mss_capture is None:
+            self._mss_capture = (
+                self._create_mss_capture()
+            )
+
+        return self._mss_capture
+
+    def _capture_rgb_mss(
         self,
         window: X11Window,
     ) -> np.ndarray:
-        """Capture a window directly and return H×W×3 uint8 RGB."""
+        monitor = self._window_monitor(window)
+        capture = self._require_mss_capture()
 
-        if not isinstance(window, X11Window):
-            raise TypeError(
-                "window must be an X11Window instance"
+        grab = getattr(
+            capture,
+            "grab",
+        )
+
+        try:
+            shot = grab(monitor)
+            bgra = np.asarray(
+                shot,
+                dtype=np.uint8,
+            )
+        except Exception as error:
+            raise RuntimeError(
+                "MSS window capture failed"
+            ) from error
+
+        if (
+            bgra.ndim != 3
+            or bgra.shape[2] < 3
+            or bgra.size == 0
+        ):
+            raise RuntimeError(
+                "MSS returned an invalid BGRA frame"
             )
 
+        rgb = np.ascontiguousarray(
+            bgra[:, :, :3][:, :, ::-1]
+        )
+
+        if (
+            rgb.ndim != 3
+            or rgb.shape[2] != 3
+            or rgb.dtype != np.uint8
+            or rgb.size == 0
+        ):
+            raise RuntimeError(
+                "captured image is not a valid RGB frame"
+            )
+
+        return rgb
+
+    def _capture_rgb_imagemagick(
+        self,
+        window: X11Window,
+    ) -> np.ndarray:
         command = [
             self.import_command,
             "-silent",
@@ -210,6 +408,57 @@ class X11WindowCapture:
             )
 
         return rgb
+
+    def capture_rgb(
+        self,
+        window: X11Window,
+    ) -> np.ndarray:
+        """Capture a window and return H×W×3 uint8 RGB."""
+
+        if not isinstance(window, X11Window):
+            raise TypeError(
+                "window must be an X11Window instance"
+            )
+
+        if self.backend == "mss":
+            return self._capture_rgb_mss(window)
+
+        return self._capture_rgb_imagemagick(
+            window
+        )
+
+    def close(self) -> None:
+        """Release persistent capture resources."""
+
+        capture = self._mss_capture
+
+        self._mss_capture = None
+        self._window_monitors.clear()
+
+        if capture is None:
+            return
+
+        close = getattr(
+            capture,
+            "close",
+            None,
+        )
+
+        if callable(close):
+            close()
+
+    def __enter__(
+        self,
+    ) -> "X11WindowCapture":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: object,
+        exc_value: object,
+        traceback: object,
+    ) -> None:
+        self.close()
 
 
 def preprocess_rgb_frame(

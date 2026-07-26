@@ -22,6 +22,7 @@ def test_default_arguments() -> None:
     assert args.map_name == "boil"
     assert args.port == 26000
     assert args.max_players == 4
+    assert args.frag_limit == 30
     assert args.bots == 3
     assert args.skill == 4
     assert args.matchmaking == "fixed"
@@ -29,6 +30,29 @@ def test_default_arguments() -> None:
     assert tuple(args.skill_range) == (2, 7)
     assert args.seed is None
     assert args.adaptive_state.name == "agent_rating.json"
+
+
+def test_frag_limit_argument() -> None:
+    args = parse_args(
+        [
+            "--frag-limit",
+            "3",
+        ]
+    )
+
+    assert args.frag_limit == 3
+
+    for invalid_value in (
+        "0",
+        "-1",
+    ):
+        with pytest.raises(SystemExit):
+            parse_args(
+                [
+                    "--frag-limit",
+                    invalid_value,
+                ]
+            )
 
 
 def test_mode_alias_is_normalized() -> None:
@@ -51,6 +75,7 @@ def test_server_config_contains_mode_and_map(
     path = write_server_config(
         mode="ctf",
         map_name="runningmanctf",
+        frag_limit=5,
         directory=tmp_path,
     )
 
@@ -58,6 +83,7 @@ def test_server_config_contains_mode_and_map(
 
     assert 'gametype "ctf"' in content
     assert 'g_maplist "runningmanctf"' in content
+    assert 'fraglimit "5"' in content
     assert 'map "runningmanctf"' in content
 
 

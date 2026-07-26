@@ -342,6 +342,50 @@ class XInput2EventStreamParser:
 
         return tuple(events)
 
+    def flush_if_complete(
+        self,
+    ) -> tuple[XInput2RawEvent, ...]:
+        """Finish a buffered event only when it is complete.
+
+        Live ``xinput test-xi2`` streams do not always begin another
+        event immediately after a key or button release. This method
+        allows a caller to flush after a short quiet period without
+        destroying a partially written event block.
+        """
+
+        if not self._current_lines:
+            return ()
+
+        block = "\n".join(
+            self._current_lines
+        )
+
+        header = _HEADER_PATTERN.match(
+            block.splitlines()[0].strip()
+        )
+
+        if header is None:
+            raise ValueError(
+                "invalid XInput2 event stream"
+            )
+
+        if (
+            header.group("event_type")
+            not in RAW_EVENT_TYPES
+        ):
+            self._current_lines = []
+            return ()
+
+        try:
+            event = parse_xinput2_raw_event(
+                block
+            )
+        except ValueError:
+            return ()
+
+        self._current_lines = []
+        return (event,)
+
     def flush(
         self,
     ) -> tuple[XInput2RawEvent, ...]:
@@ -381,6 +425,8 @@ class HumanInputAccumulator:
         self._turn_delta_x = 0.0
         self._look_delta_y = 0.0
         self._weapon_delta = 0
+        self._weapon_previous_event_count = 0
+        self._weapon_next_event_count = 0
 
     @property
     def pressed_keycodes(
@@ -397,6 +443,22 @@ class HumanInputAccumulator:
         return tuple(
             sorted(self._pressed_buttons)
         )
+
+    @property
+    def weapon_previous_event_count(
+        self,
+    ) -> int:
+        """Return unconsumed previous-weapon presses."""
+
+        return self._weapon_previous_event_count
+
+    @property
+    def weapon_next_event_count(
+        self,
+    ) -> int:
+        """Return unconsumed next-weapon presses."""
+
+        return self._weapon_next_event_count
 
     def _source_allowed(
         self,
@@ -470,8 +532,10 @@ class HumanInputAccumulator:
         if event.event_type == "RawButtonPress":
             if event.detail == 4:
                 self._weapon_delta += 1
+                self._weapon_next_event_count += 1
             elif event.detail == 5:
                 self._weapon_delta -= 1
+                self._weapon_previous_event_count += 1
             else:
                 self._pressed_buttons.add(
                     event.detail
@@ -538,6 +602,8 @@ class HumanInputAccumulator:
         self._turn_delta_x = 0.0
         self._look_delta_y = 0.0
         self._weapon_delta = 0
+        self._weapon_previous_event_count = 0
+        self._weapon_next_event_count = 0
 
         return command
 
@@ -550,3 +616,5 @@ class HumanInputAccumulator:
         self._turn_delta_x = 0.0
         self._look_delta_y = 0.0
         self._weapon_delta = 0
+        self._weapon_previous_event_count = 0
+        self._weapon_next_event_count = 0

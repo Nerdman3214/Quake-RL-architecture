@@ -38,6 +38,7 @@ DEFAULT_MAP = "boil"
 DEFAULT_MAX_PLAYERS = 4
 DEFAULT_BOT_COUNT = 3
 DEFAULT_BOT_SKILL = 4
+DEFAULT_FRAG_LIMIT = 30
 
 DEFAULT_MATCHMAKING = "fixed"
 DEFAULT_BOT_COUNT_RANGE = (7, 15)
@@ -268,6 +269,15 @@ def parse_args(
         ),
     )
     parser.add_argument(
+        "--frag-limit",
+        type=positive_integer,
+        default=DEFAULT_FRAG_LIMIT,
+        help=(
+            "Frags required to end a deathmatch. "
+            f"Default: {DEFAULT_FRAG_LIMIT}."
+        ),
+    )
+    parser.add_argument(
         "--bots",
         type=bot_count_argument,
         default=DEFAULT_BOT_COUNT,
@@ -433,6 +443,7 @@ def write_server_config(
     *,
     mode: str,
     map_name: str,
+    frag_limit: int,
     directory: Path = USER_DATA_DIRECTORY,
 ) -> Path:
     """Write the mode/map configuration loaded by Xonotic."""
@@ -446,6 +457,7 @@ def write_server_config(
             f'g_maplist "{map_name}"\n'
             'g_maplist_shuffle 0\n'
             'g_maplist_votable 0\n'
+            f'fraglimit "{frag_limit}"\n'
             f'map "{map_name}"\n'
         ),
         encoding="utf-8",
@@ -552,6 +564,7 @@ def main(
     server_config_path = write_server_config(
         mode=args.mode,
         map_name=args.map_name,
+        frag_limit=args.frag_limit,
     )
 
     command = build_command(
@@ -572,6 +585,7 @@ def main(
     print(f"Server config: {server_config_path}")
     print(f"Port: {args.port}")
     print(f"Maximum players: {args.max_players}")
+    print(f"Frag limit: {args.frag_limit}")
     print(f"Matchmaking: {matchmaking.policy}")
     print(f"Matchmaking seed: {matchmaking.seed}")
     print(f"Bots: {matchmaking.bot_count}")
@@ -632,6 +646,7 @@ def main(
                 ),
                 "port": args.port,
                 "max_players": args.max_players,
+                "frag_limit": args.frag_limit,
                 "matchmaking": matchmaking.policy,
                 "matchmaking_seed": matchmaking.seed,
                 "requested_bot_count": (

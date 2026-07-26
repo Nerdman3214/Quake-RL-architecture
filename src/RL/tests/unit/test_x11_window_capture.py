@@ -77,7 +77,134 @@ def test_find_window_uses_last_visible_match(
     assert calls[1][-1] == "200"
 
 
-def test_capture_rgb_uses_direct_window_output(
+class FakeMSSCapture:
+    def __init__(self) -> None:
+        self.monitors: list[
+            dict[str, int]
+        ] = []
+        self.closed = False
+
+    def grab(
+        self,
+        monitor: dict[str, int],
+    ) -> np.ndarray:
+        self.monitors.append(
+            dict(monitor)
+        )
+
+        frame = np.empty(
+            (2, 3, 4),
+            dtype=np.uint8,
+        )
+        frame[:, :, 0] = 10
+        frame[:, :, 1] = 20
+        frame[:, :, 2] = 30
+        frame[:, :, 3] = 255
+        return frame
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_capture_rgb_uses_persistent_mss(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+    instances: list[FakeMSSCapture] = []
+
+    def factory() -> FakeMSSCapture:
+        capture = FakeMSSCapture()
+        instances.append(capture)
+        return capture
+
+    def fake_run(
+        command: list[str],
+        **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=(
+                "WINDOW=200\n"
+                "X=10\n"
+                "Y=20\n"
+                "WIDTH=3\n"
+                "HEIGHT=2\n"
+                "SCREEN=0\n"
+            ),
+            stderr="",
+        )
+
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        fake_run,
+    )
+
+    capture = X11WindowCapture(
+        mss_factory=factory,
+    )
+    window = X11Window(
+        window_id=200,
+        title="Xonotic",
+    )
+
+    first = capture.capture_rgb(window)
+    second = capture.capture_rgb(window)
+
+    assert len(instances) == 1
+    assert commands == [
+        [
+            "xdotool",
+            "getwindowgeometry",
+            "--shell",
+            "200",
+        ]
+    ]
+    assert instances[0].monitors == [
+        {
+            "left": 10,
+            "top": 20,
+            "width": 3,
+            "height": 2,
+        },
+        {
+            "left": 10,
+            "top": 20,
+            "width": 3,
+            "height": 2,
+        },
+    ]
+
+    for frame in (first, second):
+        assert frame.shape == (2, 3, 3)
+        assert frame.dtype == np.uint8
+        assert frame.flags["C_CONTIGUOUS"]
+        assert frame[0, 0].tolist() == [
+            30,
+            20,
+            10,
+        ]
+
+    capture.close()
+    capture.close()
+
+    assert instances[0].closed
+
+    reopened = capture.capture_rgb(window)
+
+    assert reopened.shape == (2, 3, 3)
+    assert len(instances) == 2
+    assert len(commands) == 2
+
+    capture.close()
+
+    assert instances[1].closed
+
+
+def test_imagemagick_backend_remains_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     payload = make_png_bytes()
@@ -102,7 +229,9 @@ def test_capture_rgb_uses_direct_window_output(
         fake_run,
     )
 
-    capture = X11WindowCapture()
+    capture = X11WindowCapture(
+        backend="imagemagick",
+    )
 
     frame = capture.capture_rgb(
         X11Window(
@@ -113,7 +242,11 @@ def test_capture_rgb_uses_direct_window_output(
 
     assert frame.shape == (4, 8, 3)
     assert frame.dtype == np.uint8
-    assert frame[0, 0].tolist() == [12, 34, 56]
+    assert frame[0, 0].tolist() == [
+        12,
+        34,
+        56,
+    ]
     assert commands[0] == [
         "import",
         "-silent",
@@ -121,6 +254,16 @@ def test_capture_rgb_uses_direct_window_output(
         "0xc8",
         "png:-",
     ]
+
+
+def test_capture_rejects_unknown_backend() -> None:
+    with pytest.raises(
+        ValueError,
+        match="capture backend",
+    ):
+        X11WindowCapture(
+            backend="unknown",
+        )
 
 
 def test_preprocess_rgb_frame_returns_chw_float32() -> None:

@@ -369,3 +369,90 @@ def test_reset_clears_unbalanced_capture_state() -> None:
     assert accumulator.pressed_keycodes == ()
     assert accumulator.pressed_buttons == ()
     assert accumulator.snapshot().is_no_op
+
+def test_flush_if_complete_preserves_partial_event() -> None:
+    parser = XInput2EventStreamParser()
+
+    assert parser.feed_line(
+        "EVENT type 13 (RawKeyPress)\n"
+    ) == ()
+
+    assert parser.flush_if_complete() == ()
+
+    completed = []
+
+    for line in (
+        "    device: 3 (13)\n",
+        "    time:   286587137\n",
+        "    detail: 25\n",
+        "    valuators:\n",
+    ):
+        completed.extend(
+            parser.feed_line(line)
+        )
+
+    assert completed == []
+
+    flushed = parser.flush_if_complete()
+
+    assert len(flushed) == 1
+    assert flushed[0].event_type == (
+        "RawKeyPress"
+    )
+    assert flushed[0].detail == 25
+
+    assert parser.flush_if_complete() == ()
+
+
+def test_flush_if_complete_finishes_release_without_next_event(
+) -> None:
+    parser = XInput2EventStreamParser()
+
+    assert parser.feed_lines(
+        KEY_RELEASE.splitlines(
+            keepends=True
+        )
+    ) == ()
+
+    flushed = parser.flush_if_complete()
+
+    assert len(flushed) == 1
+    assert flushed[0].event_type == (
+        "RawKeyRelease"
+    )
+    assert flushed[0].detail == 25
+
+
+def test_wheel_event_counts_preserve_opposing_events(
+) -> None:
+    accumulator = HumanInputAccumulator()
+
+    accumulator.apply(
+        event(
+            "RawButtonPress",
+            source=10,
+            detail=4,
+        )
+    )
+    accumulator.apply(
+        event(
+            "RawButtonPress",
+            source=10,
+            detail=5,
+        )
+    )
+
+    assert accumulator.weapon_next_event_count == 1
+    assert (
+        accumulator.weapon_previous_event_count
+        == 1
+    )
+
+    command = accumulator.snapshot()
+
+    assert command.weapon_delta == 0
+    assert accumulator.weapon_next_event_count == 0
+    assert (
+        accumulator.weapon_previous_event_count
+        == 0
+    )

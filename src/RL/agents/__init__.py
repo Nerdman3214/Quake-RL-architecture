@@ -8,6 +8,9 @@ from RL.agents.policies import (
     CHECKPOINT_FORMAT_VERSION,
     ActorCriticActionBatch,
     ActorCriticPolicyAgent,
+    HierarchicalPolicyOutput,
+    HierarchicalRecurrentPolicy,
+    TacticalIntent,
     LoadedVisualPolicyCheckpoint,
     NeuralPolicyAgent,
     VisualActorCriticNetwork,
@@ -17,6 +20,9 @@ from RL.agents.policies import (
 )
 
 __all__ = [
+    "TacticalIntent",
+    "HierarchicalRecurrentPolicy",
+    "HierarchicalPolicyOutput",
     "Agent",
     "CHECKPOINT_FORMAT_VERSION",
     "ActorCriticActionBatch",

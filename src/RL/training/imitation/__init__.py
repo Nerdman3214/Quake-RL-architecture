@@ -1,5 +1,16 @@
 """Imitation-learning data and training utilities."""
 
+from RL.training.imitation.composite_sequence_dataset import (
+    AXIS_CLASS_COUNT,
+    GAME_MODE_TO_INDEX,
+    PREVIOUS_ACTION_FEATURE_COUNT,
+    WEAPON_CLASS_COUNT,
+    CompositeSequenceBatch,
+    CompositeSequenceDataset,
+    CompositeSequenceSample,
+    collate_composite_sequences,
+    make_composite_sequence_dataloader,
+)
 from RL.training.imitation.behavior_cloning import (
     ACTION_COUNT,
     BehaviorCloningMetrics,
@@ -7,6 +18,22 @@ from RL.training.imitation.behavior_cloning import (
     BehaviorCloningTrainer,
     behavior_cloning_loss,
     behavior_cloning_metrics,
+)
+from RL.training.imitation.hierarchical_behavior_cloning import (
+    HierarchicalBehaviorCloningLosses,
+    HierarchicalBehaviorCloningMetrics,
+    HierarchicalBehaviorCloningStepResult,
+    HierarchicalBehaviorCloningTrainer,
+    HierarchicalClassWeights,
+    HierarchicalLossWeights,
+    hierarchical_behavior_cloning_loss,
+    hierarchical_behavior_cloning_metrics,
+)
+from RL.training.imitation.hierarchical_checkpoint import (
+    HIERARCHICAL_CHECKPOINT_FORMAT_VERSION,
+    LoadedHierarchicalCheckpoint,
+    load_hierarchical_checkpoint,
+    save_hierarchical_checkpoint,
 )
 from RL.training.imitation.dataset import (
     POLICY_FRAME_SHAPE,
@@ -18,6 +45,27 @@ from RL.training.imitation.dataset import (
 )
 
 __all__ = [
+    "save_hierarchical_checkpoint",
+    "load_hierarchical_checkpoint",
+    "LoadedHierarchicalCheckpoint",
+    "HIERARCHICAL_CHECKPOINT_FORMAT_VERSION",
+    "hierarchical_behavior_cloning_metrics",
+    "hierarchical_behavior_cloning_loss",
+    "HierarchicalClassWeights",
+    "HierarchicalLossWeights",
+    "HierarchicalBehaviorCloningTrainer",
+    "HierarchicalBehaviorCloningStepResult",
+    "HierarchicalBehaviorCloningMetrics",
+    "HierarchicalBehaviorCloningLosses",
+    "make_composite_sequence_dataloader",
+    "collate_composite_sequences",
+    "CompositeSequenceSample",
+    "CompositeSequenceDataset",
+    "CompositeSequenceBatch",
+    "WEAPON_CLASS_COUNT",
+    "PREVIOUS_ACTION_FEATURE_COUNT",
+    "GAME_MODE_TO_INDEX",
+    "AXIS_CLASS_COUNT",
     "ACTION_COUNT",
     "POLICY_FRAME_SHAPE",
     "BehaviorCloningMetrics",
