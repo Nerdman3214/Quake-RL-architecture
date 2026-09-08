@@ -1,0 +1,14 @@
+{
+  "source_alignment_manifest_sha256": "175d9d8920d93048f0d0847f47aee119007cb83101b02da9c51c7f1f6d129c3c",
+  "observations": [
+    {
+      "capture_relative_line_1based": 8749,
+      "reset_recovered_line": 8848,
+      "reset_original_line": 9081,
+      "recorded_reset_recovered_line": 8749,
+      "recorded_reset_original_line": 8982,
+      "manifest_numbering_mismatch": true
+    }
+  ],
+  "frozen_inputs_modified": false
+}

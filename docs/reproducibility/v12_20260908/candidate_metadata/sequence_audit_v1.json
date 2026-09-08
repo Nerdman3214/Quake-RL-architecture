@@ -1,0 +1,127 @@
+{
+  "format_version": 1,
+  "dataset": "V12",
+  "role": "calibration_validation_only",
+  "status": "review_candidate",
+  "source_record_count": 8995,
+  "sequence_length": 4,
+  "expected_step_seconds": 0.1,
+  "expected_span_seconds": 0.3,
+  "step_tolerance_seconds": 0.002,
+  "span_tolerance_seconds": 0.003,
+  "max_telemetry_gap_seconds": 0.075,
+  "contiguous_segment_count": 4,
+  "boundary_count": 3,
+  "structural_boundary_count": 1,
+  "boundaries": [
+    {
+      "left_filtered_index": 4640,
+      "right_filtered_index": 4641,
+      "left_source_sample_id": 4640,
+      "right_source_sample_id": 4641,
+      "left_frame": "frame_004641.jpg",
+      "right_frame": "frame_004642.jpg",
+      "reasons": [
+        "label_ineligible"
+      ]
+    },
+    {
+      "left_filtered_index": 4641,
+      "right_filtered_index": 4642,
+      "left_source_sample_id": 4641,
+      "right_source_sample_id": 4647,
+      "left_frame": "frame_004642.jpg",
+      "right_frame": "frame_004648.jpg",
+      "reasons": [
+        "sample_id_gap",
+        "frame_number_gap",
+        "video_time_gap",
+        "telemetry_interval_discontinuity",
+        "explicit_segment_change",
+        "label_ineligible"
+      ]
+    },
+    {
+      "left_filtered_index": 4642,
+      "right_filtered_index": 4643,
+      "left_source_sample_id": 4647,
+      "right_source_sample_id": 4648,
+      "left_frame": "frame_004648.jpg",
+      "right_frame": "frame_004649.jpg",
+      "reasons": [
+        "label_ineligible"
+      ]
+    }
+  ],
+  "possible_windows_without_boundary_checks": 8992,
+  "valid_sequence_count": 8987,
+  "label_eligible_record_count": 8993,
+  "label_ineligible_records": [
+    {
+      "filtered_index": 4641,
+      "source_sample_id": 4641,
+      "frame": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/game_only_v12_calibration_frozen_20260907_v1/V12/frames_game_only_10hz/frame_004642.jpg",
+      "reason": "interval_ends_after_segment"
+    },
+    {
+      "filtered_index": 4642,
+      "source_sample_id": 4647,
+      "frame": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/game_only_v12_calibration_frozen_20260907_v1/V12/frames_game_only_10hz/frame_004648.jpg",
+      "reason": "interval_starts_before_segment"
+    }
+  ],
+  "quality_ineligible_record_count": 0,
+  "rejected_cross_boundary_windows": 3,
+  "rejected_label_windows": 2,
+  "rejected_quality_windows": 0,
+  "temporal_sequence_audit_passed": true,
+  "dense_cache_index_is_not_temporal_identity": true,
+  "training": false,
+  "train_admission": false,
+  "automatic_action_allowed": false,
+  "controls_modified": false,
+  "agent_control": false,
+  "V8_consumed": false,
+  "validation_dataset_frozen": false,
+  "label_contract": "historical_0p1s_same_segment_single_sample_fallback_v2",
+  "training_started": false,
+  "inputs": {
+    "alignment_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/frozen_alignment_v1/alignment_manifest_v1.json",
+      "sha256": "175d9d8920d93048f0d0847f47aee119007cb83101b02da9c51c7f1f6d129c3c"
+    },
+    "recovery_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/recovery_manifest_v1.json",
+      "sha256": "95daef27f43de6477ab337bcc3db8b90b011cfdf2355716119a998616120d825"
+    },
+    "telemetry": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/live_telemetry_capture_context_recovered_v1.jsonl",
+      "sha256": "c9988bbdcbc1a5dc96f930a39adeb9b742b9605977a4eac57082c04844a02170"
+    },
+    "frame_index": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/game_only_v12_calibration_frozen_20260907_v1/V12/frame_index_v1.jsonl",
+      "sha256": "c332bffa857765c550da1fa60cdbb9d7a8dc2d9a89cdb183125ef2c147e05e89"
+    },
+    "cache_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/dinov3_v12_calibration_frozen_20260907_v1/V12/manifest_v1.json",
+      "sha256": "53887ff6967a869380da22d2d9c1dfdd0879942af1d1e7d5495c68973d0c9076"
+    },
+    "label_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/prepare_v12_temporal_v2.py",
+      "sha256": "07616491b73ee13fab51f8e63372da61596a14d09b085c8afa87ecb057518d2c"
+    },
+    "sequence_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/build_temporal_sequence_index.py",
+      "sha256": "f3b6a8b057035df6fe6ad39166bafe3a5ed0faf9155dbbf7cd262659e500257c"
+    }
+  },
+  "cache_directory": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/dinov3_v12_calibration_frozen_20260907_v1/V12",
+  "cache_manifest": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/dinov3_v12_calibration_frozen_20260907_v1/V12/manifest_v1.json",
+  "cache_manifest_sha256": "53887ff6967a869380da22d2d9c1dfdd0879942af1d1e7d5495c68973d0c9076",
+  "source_file": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/aligned_samples_label_candidate_v1.jsonl",
+  "source_sha256": "e53c2619ba6002264462131385fd6604156f6900718a92e986ab8afffc8e7383",
+  "sequence_index_file": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/sequence_index_v1.jsonl",
+  "sequence_index_sha256": "848a3d8f054db739d0756ee497f5c2ec21bb9fab6ee551fb761884296285ddd1",
+  "cache_manifest_compat_file": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/cache_manifest_compat_v1.json",
+  "cache_manifest_compat_sha256": "211de33e18bd76578fc460ea68466ab4031796d0c4cb974e974281aae709afff"
+}

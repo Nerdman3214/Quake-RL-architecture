@@ -1,0 +1,57 @@
+{
+  "frozen_contract/freeze_audit_v1.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1/freeze_audit_v1.json",
+    "sha256": "5f8b6fee53e0c44553b4f24fe3d5f74eba07d43a7e99bc635a5c363935154f11",
+    "bytes": 5363
+  },
+  "frozen_contract/freeze_v12_validation_contract_v1.py": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1/freeze_v12_validation_contract_v1.py",
+    "sha256": "1833adca0a8ee2d634460ee6a568a736c6ce962f1a0352f6400274dc8bbba89f",
+    "bytes": 16406
+  },
+  "frozen_contract/sha256s_v12_validation_contract_v1.txt": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1/sha256s_v12_validation_contract_v1.txt",
+    "sha256": "55146dc62d069d124e2d067225462a1820b307ad3bb7044c432ad81048d72141",
+    "bytes": 288
+  },
+  "frozen_contract/v12_validation_contract_v1.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1/v12_validation_contract_v1.json",
+    "sha256": "69b98f3c99356316d6e1b7135d6915d687910133372f5ccf1adea4f0ba6a8576",
+    "bytes": 5871
+  },
+  "candidate_metadata/label_audit_v1.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/label_audit_v1.json",
+    "sha256": "88364efa1ed670a16b8bb77a3cee085debb014ff33f92e6264921aaff3a96677",
+    "bytes": 3645
+  },
+  "candidate_metadata/sequence_audit_v1.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/sequence_audit_v1.json",
+    "sha256": "88f0ffc2f8425cfeb3c9b9335be88f5370c32a070881e43adc90eafe25f42797",
+    "bytes": 5935
+  },
+  "candidate_metadata/alignment_line_number_erratum_v1.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/alignment_line_number_erratum_v1.json",
+    "sha256": "b53c0acfceac5af3b7084d861b10dfa705da0c92dde13f358c5784de6aaad553",
+    "bytes": 427
+  },
+  "candidate_metadata/sha256s_candidate_v1.txt": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/sha256s_candidate_v1.txt",
+    "sha256": "513378ad97dce297bf7a51242d43611237bd819e5e1396ddf9db26f6e65c00df",
+    "bytes": 662
+  },
+  "candidate_metadata/sha256s_temporal_v1.txt": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/temporal_sequences_v12_calibration_review_candidate_20260907_v1/V12/sha256s_temporal_v1.txt",
+    "sha256": "f4943680eb3e6bf2590cd4584dc1034a37ce93c9ae5324f17b671a6be9db1f7b",
+    "bytes": 275
+  },
+  "v11b_runtime_contract_v3.json": {
+    "source_path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/policy_v2_2_v11b_contract_20260905_v3/v2_2_v11b_runtime_contract_v3.json",
+    "sha256": "436c3272de5c6837b5b2274f8fbedfd84fbd044ed4ba79974ad8badb792f126f",
+    "bytes": 24417
+  },
+  "independent_frozen_audit_v1.json": {
+    "source_path": "/tmp/v12_frozen_independent_audit_20260908_v1.json",
+    "sha256": "45062aa2cc021e769f3569d79b8f05973ffe09d927948458d1bfeba6cfa069ed",
+    "bytes": 4122
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "format_version": 1,
+  "dataset": "V12",
+  "role": "calibration_validation_only",
+  "status": "review_candidate",
+  "validation_dataset_frozen": false,
+  "label_contract": "historical_0p1s_same_segment_single_sample_fallback_v2",
+  "action_interval_seconds": 0.1,
+  "all_context_frames_require_eligible_labels": true,
+  "single_sample_intervals_allowed": true,
+  "interpolation_used": false,
+  "source_record_count": 8995,
+  "label_eligible_count": 8993,
+  "label_exclusions": [
+    {
+      "source_frame_number_1based": 4642,
+      "source_sample_id": 4641,
+      "segment": 1,
+      "reason": "interval_ends_after_segment",
+      "interval_start": 488.366379747,
+      "interval_end": 488.466379747,
+      "segment_first_sample_time": 24.183428,
+      "segment_last_sample_time": 488.382355
+    },
+    {
+      "source_frame_number_1based": 4648,
+      "source_sample_id": 4647,
+      "segment": 2,
+      "reason": "interval_starts_before_segment",
+      "interval_start": 2.5279792839999686,
+      "interval_end": 2.6279792839999687,
+      "segment_first_sample_time": 2.566765,
+      "segment_last_sample_time": 438.207947
+    }
+  ],
+  "eligible_interval_sample_counts": {
+    "1": 1065,
+    "2": 7919,
+    "3": 9
+  },
+  "reset_line_number_observations": [
+    {
+      "capture_relative_line_1based": 8749,
+      "reset_recovered_line": 8848,
+      "reset_original_line": 9081,
+      "recorded_reset_recovered_line": 8749,
+      "recorded_reset_original_line": 8982,
+      "manifest_numbering_mismatch": true
+    }
+  ],
+  "frozen_alignment_modified": false,
+  "train_admission": false,
+  "training_started": false,
+  "agent_control": false,
+  "automatic_action_allowed": false,
+  "controls_modified": false,
+  "V8_consumed": false,
+  "inputs": {
+    "alignment_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/frozen_alignment_v1/alignment_manifest_v1.json",
+      "sha256": "175d9d8920d93048f0d0847f47aee119007cb83101b02da9c51c7f1f6d129c3c"
+    },
+    "recovery_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/recovery_manifest_v1.json",
+      "sha256": "95daef27f43de6477ab337bcc3db8b90b011cfdf2355716119a998616120d825"
+    },
+    "telemetry": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/live_telemetry_capture_context_recovered_v1.jsonl",
+      "sha256": "c9988bbdcbc1a5dc96f930a39adeb9b742b9605977a4eac57082c04844a02170"
+    },
+    "frame_index": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/game_only_v12_calibration_frozen_20260907_v1/V12/frame_index_v1.jsonl",
+      "sha256": "c332bffa857765c550da1fa60cdbb9d7a8dc2d9a89cdb183125ef2c147e05e89"
+    },
+    "cache_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/dinov3_v12_calibration_frozen_20260907_v1/V12/manifest_v1.json",
+      "sha256": "53887ff6967a869380da22d2d9c1dfdd0879942af1d1e7d5495c68973d0c9076"
+    },
+    "label_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/prepare_v12_temporal_v2.py",
+      "sha256": "07616491b73ee13fab51f8e63372da61596a14d09b085c8afa87ecb057518d2c"
+    },
+    "sequence_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/build_temporal_sequence_index.py",
+      "sha256": "f3b6a8b057035df6fe6ad39166bafe3a5ed0faf9155dbbf7cd262659e500257c"
+    }
+  }
+}

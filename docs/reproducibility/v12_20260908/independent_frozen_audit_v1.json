@@ -1,0 +1,73 @@
+{
+  "V8_consumed": false,
+  "agent_control": false,
+  "automatic_action_allowed": false,
+  "candidate_bundle_sha256": "8b3f58721cb0bb46683d2cd01f6b064d465a466e25c497321e349e8b1e532593",
+  "candidate_file_count": 8,
+  "candidate_file_sha256s": {
+    "aligned_samples_label_candidate_v1.jsonl": "e53c2619ba6002264462131385fd6604156f6900718a92e986ab8afffc8e7383",
+    "alignment_line_number_erratum_v1.json": "b53c0acfceac5af3b7084d861b10dfa705da0c92dde13f358c5784de6aaad553",
+    "cache_manifest_compat_v1.json": "211de33e18bd76578fc460ea68466ab4031796d0c4cb974e974281aae709afff",
+    "label_audit_v1.json": "88364efa1ed670a16b8bb77a3cee085debb014ff33f92e6264921aaff3a96677",
+    "sequence_audit_v1.json": "88f0ffc2f8425cfeb3c9b9335be88f5370c32a070881e43adc90eafe25f42797",
+    "sequence_index_v1.jsonl": "848a3d8f054db739d0756ee497f5c2ec21bb9fab6ee551fb761884296285ddd1",
+    "sha256s_candidate_v1.txt": "513378ad97dce297bf7a51242d43611237bd819e5e1396ddf9db26f6e65c00df",
+    "sha256s_temporal_v1.txt": "f4943680eb3e6bf2590cd4584dc1034a37ce93c9ae5324f17b671a6be9db1f7b"
+  },
+  "contract_sha256": "69b98f3c99356316d6e1b7135d6915d687910133372f5ccf1adea4f0ba6a8576",
+  "controls_modified": false,
+  "error_count": 0,
+  "feature_chunks_hashed": 563,
+  "freeze_audit_sha256": "5f8b6fee53e0c44553b4f24fe3d5f74eba07d43a7e99bc635a5c363935154f11",
+  "freezer_script_sha256": "1833adca0a8ee2d634460ee6a568a736c6ce962f1a0352f6400274dc8bbba89f",
+  "frozen_contract_directory": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1",
+  "frozen_file_count": 4,
+  "independent_of_freezer_and_builders": true,
+  "known_reset_numbering_erratum_preserved": true,
+  "label_exclusions": {
+    "4641": "interval_ends_after_segment",
+    "4647": "interval_starts_before_segment"
+  },
+  "label_windows_excluded": 2,
+  "provenance_inputs": {
+    "alignment_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/frozen_alignment_v1/alignment_manifest_v1.json",
+      "sha256": "175d9d8920d93048f0d0847f47aee119007cb83101b02da9c51c7f1f6d129c3c"
+    },
+    "cache_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/dinov3_v12_calibration_frozen_20260907_v1/V12/manifest_v1.json",
+      "sha256": "53887ff6967a869380da22d2d9c1dfdd0879942af1d1e7d5495c68973d0c9076"
+    },
+    "frame_index": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/game_only_v12_calibration_frozen_20260907_v1/V12/frame_index_v1.jsonl",
+      "sha256": "c332bffa857765c550da1fa60cdbb9d7a8dc2d9a89cdb183125ef2c147e05e89"
+    },
+    "label_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/prepare_v12_temporal_v2.py",
+      "sha256": "07616491b73ee13fab51f8e63372da61596a14d09b085c8afa87ecb057518d2c"
+    },
+    "recovery_manifest": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/recovery_manifest_v1.json",
+      "sha256": "95daef27f43de6477ab337bcc3db8b90b011cfdf2355716119a998616120d825"
+    },
+    "sequence_script": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/build_temporal_sequence_index.py",
+      "sha256": "f3b6a8b057035df6fe6ad39166bafe3a5ed0faf9155dbbf7cd262659e500257c"
+    },
+    "telemetry": {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/data/recordings/visual_bc_calibration_v12_native10hz_candidate_20260907_000209/recovered_context_v1/live_telemetry_capture_context_recovered_v1.jsonl",
+      "sha256": "c9988bbdcbc1a5dc96f930a39adeb9b742b9605977a4eac57082c04844a02170"
+    }
+  },
+  "reconstructed_eligible_labels": 8993,
+  "record_chunks_hashed": 563,
+  "sequence_count": 8987,
+  "source_candidate_modified": false,
+  "source_records": 8995,
+  "status": "PASS",
+  "structural_windows_excluded": 3,
+  "tensor_finiteness_rescanned": false,
+  "train_admission": false,
+  "training_authorized": false,
+  "training_started": false
+}
