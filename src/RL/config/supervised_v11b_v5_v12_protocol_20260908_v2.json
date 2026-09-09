@@ -1,0 +1,175 @@
+{
+  "format_version": 1,
+  "name": "supervised_v11b_v5_v12_protocol_20260908_v2",
+  "status": "frozen_supervised_protocol_pending_training_authorization",
+  "protocol_frozen": true,
+  "authorization_basis": "Recipe freeze only after successful audit-only preflight; this field does not authorize optimizer execution. Full persistent supervised training requires a separate explicit user decision after the selective Git/GitHub checkpoint.",
+  "recovery_commit": "5efd761b8b59f17bea1774d4c57b7e100f828abe",
+  "runtime_contract": {
+    "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/policy_v2_2_v11b_contract_20260905_v3/v2_2_v11b_runtime_contract_v3.json",
+    "sha256": "436c3272de5c6837b5b2274f8fbedfd84fbd044ed4ba79974ad8badb792f126f"
+  },
+  "v12_contract": {
+    "path": "/media/steven/WINPE2/Quake-RL-architecture/data/cache/visual_bc/v12_calibration_validation_frozen_contract_20260908_v1/v12_validation_contract_v1.json",
+    "sha256": "69b98f3c99356316d6e1b7135d6915d687910133372f5ccf1adea4f0ba6a8576"
+  },
+  "trainer": {
+    "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/train_temporal_policy_v2_2_runtime_v6.py",
+    "sha256": "657d2fb69f78d4a09aa1c85f5d33630e5ea9ca04a62ea157ca0b405026f63d3e"
+  },
+  "parent_trainer": {
+    "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/train_temporal_policy_v2_2_runtime_v5.py",
+    "sha256": "b55eaff352573b0bc94ee1d5d1c63047ea6ad69984129fd1e292ad59eb18506b"
+  },
+  "dependencies": [
+    {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/train_temporal_policy_v2.py",
+      "sha256": "2eb12e664dffa6305f18658e6923b889c96d6fd58bef02925e319da1457f26e6"
+    },
+    {
+      "path": "/media/steven/WINPE2/Quake-RL-architecture/src/RL/visual_bc/train_temporal_policy_v1.py",
+      "sha256": "45f2c2d4dcc05d8cf3e1433f52aeea59feba39f8ce1a883c5fad507f6f92445c"
+    }
+  ],
+  "trainer_change": "Only run_manifest.train_sessions gains V11b; architecture, sampler, loss, optimizer, validation, checkpoint and stopping logic are identical to v5.",
+  "train": {
+    "sessions": [
+      "V4",
+      "V6",
+      "V7",
+      "V9",
+      "V10",
+      "V11b"
+    ],
+    "sequence_count": 13514,
+    "session_counts": {
+      "V4": 656,
+      "V6": 1283,
+      "V7": 3172,
+      "V9": 2408,
+      "V10": 2998,
+      "V11b": 2997
+    },
+    "random_frame_split": false,
+    "V12_admitted": false
+  },
+  "recipe": {
+    "epochs": 12,
+    "patience": 4,
+    "batch_size": 4,
+    "learning_rate": 5e-05,
+    "weight_decay": 0.0005,
+    "seed": 20260822,
+    "initialization": "fresh seed-fixed TemporalVisualPolicyV2",
+    "sampler": "equal_session_probability_mass_with_replacement",
+    "event_oversampling": false,
+    "repeat_canary": false,
+    "optimizer": "AdamW"
+  },
+  "validation": {
+    "V5": {
+      "sequence_count": 1190,
+      "use": "epoch_selection_and_historical_robustness"
+    },
+    "V12": {
+      "sequence_count": 8987,
+      "use": "post_selection_threshold_calibration_and_representative_gameplay_report",
+      "checkpoint_selection": false
+    },
+    "report_separately": true,
+    "pool_for_selection": false,
+    "optimizer_uses_validation": false,
+    "overlapping_windows_treated_as_independent_trials": false
+  },
+  "checkpoint_selection": {
+    "session": "V5",
+    "criterion": "runtime_v5_selection_score",
+    "formula": "0.30*forward_macro_f1 + 0.25*strafe_macro_f1 + 0.10*jump_AP + 0.15*yaw_activity_AP + 0.10*pitch_activity_AP - 0.025*(yaw_penalty+pitch_penalty)",
+    "tie_break": "earliest_epoch",
+    "strict_improvement": true,
+    "V12_results_used": false,
+    "V8_results_used": false
+  },
+  "calibration": {
+    "session": "V12",
+    "checkpoint": "single_best_checkpoint_selected_using_V5",
+    "heads": [
+      "jump",
+      "yaw_active",
+      "pitch_active"
+    ],
+    "threshold_grid": [
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95
+    ],
+    "objective": "maximum_per_head_F1",
+    "tie_break": "largest_threshold",
+    "comparison": ">=",
+    "no_positive_targets": "threshold_1p0_disable_head_and_report_undefined_objective",
+    "movement": "independent_argmax_3_class_logits",
+    "yaw_scale": 32.0,
+    "pitch_scale": 16.0,
+    "yaw_clip_degrees": [
+      -32.0,
+      32.0
+    ],
+    "pitch_clip_degrees": [
+      -16.0,
+      16.0
+    ],
+    "view_postprocessing": "clip_signed_regression_then_gate_by_activity_threshold",
+    "smoothing": false,
+    "additional_deadband": false,
+    "V12_threshold_metrics_are_calibration_metrics": true
+  },
+  "baseline": {
+    "sha256": "6eaab868748cc493dca5810dc1bca4761d7a76edaffda6bfd60493d13e7b9133",
+    "overwrite": false,
+    "use": "separate offline comparison on V5 and V12 after architecture/loader compatibility audit; not used to alter this run recipe"
+  },
+  "final_test": {
+    "session": "V8",
+    "sealed_until_model_freeze": true,
+    "intended_evaluations": 1,
+    "requires": [
+      "pushed_recovery_and_protocol_commits",
+      "selected_checkpoint_hash",
+      "frozen_thresholds_and_postprocessing",
+      "frozen_preprocessing_and_evaluation_code",
+      "exclusive_single_evaluation_ledger"
+    ],
+    "tune_using_final_results": false
+  },
+  "live": {
+    "current_authorization": false,
+    "requires": [
+      "offline_report_and_frozen_model_package",
+      "single_final_evaluation_completed",
+      "shadow_capture_and_inference_pass",
+      "bounded_control_supervisor_with_focus_checks_and_release_on_exit"
+    ],
+    "scope": "supervised movement, jump and camera only; no supervised combat head exists"
+  },
+  "training_started": false,
+  "V8_consumed": false,
+  "agent_control": false,
+  "automatic_action_allowed": false,
+  "execution_gate": "Commit and push this v2 protocol and the verified supervised launcher/runtime-v6 checkpoint, then require separate explicit user authorization before full persistent training; no automatic retries after optimizer or V8 failures."
+}
